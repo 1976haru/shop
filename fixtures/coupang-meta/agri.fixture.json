@@ -1,0 +1,16 @@
+{
+  "id": "fixture-agri-2026-06-30",
+  "version": "fixture-2026-06-30",
+  "sourceType": "FIXTURE",
+  "retrievedAt": "2026-06-30T00:00:00Z",
+  "categories": [{
+    "internalCategoryCode": "FOOD.FRUIT.APPLE",
+    "displayCategoryCode": 56137,
+    "categoryName": "사과",
+    "requiredAttributes": [{ "attributeTypeName": "중량", "required": true, "allowedUnits": ["kg", "g"] }],
+    "noticeCategoryName": "농수산물",
+    "noticeRequiredFields": ["품목 또는 명칭", "원산지", "중량", "생산자"],
+    "brandRequired": false,
+    "deliveryMethod": "COLD_FRESH"
+  }]
+}
