@@ -1,3 +1,4 @@
+export * from "./domain-schema.ts";
 export * from "./types.ts";
 export * from "./time.ts";
 export * from "./ids.ts";
