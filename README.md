@@ -27,7 +27,7 @@
 ## 실행
 
 ```bash
-npm install
+npm ci
 npm run typecheck
 npm test
 npm run check
