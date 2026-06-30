@@ -1,13 +1,14 @@
+import { createHash, randomUUID } from "node:crypto";
+
+export function sha256(value: string | Uint8Array): string {
+  return createHash("sha256").update(value).digest("hex");
+}
+
 export function createInternalCode(supplierId: string, supplierSku: string): string {
-  const source = (supplierId + "-" + supplierSku).toUpperCase();
-  let value = 0;
-  for (let index = 0; index < source.length; index += 1) {
-    value = (value * 31 + source.charCodeAt(index)) >>> 0;
-  }
-  const suffix = value.toString(16).toUpperCase().padStart(8, "0");
-  return "P-" + suffix + "0000";
+  const source = `${supplierId.trim()}|${supplierSku.trim()}`;
+  return `P-${sha256(source).slice(0, 12).toUpperCase()}`;
 }
 
 export function createRunId(): string {
-  return "run-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 10);
+  return `run-${randomUUID()}`;
 }
