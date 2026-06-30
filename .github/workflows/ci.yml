@@ -10,11 +10,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - run: npm install --ignore-scripts --no-audit --no-fund
-      - uses: actions/upload-artifact@v4
-        with:
-          name: npm-lock
-          path: package-lock.json
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
       - run: npm run typecheck
       - run: npm test
       - run: npm run check
