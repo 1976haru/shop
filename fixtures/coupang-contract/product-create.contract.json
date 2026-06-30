@@ -1,0 +1,12 @@
+{
+  "contractVersion": "2026-07-01",
+  "source": "Coupang Open API Product Creation",
+  "sellerProductNameMaxLength": 100,
+  "itemNameMaxLength": 150,
+  "maximumBuyCountMax": 99999,
+  "adultOnly": ["ADULT_ONLY", "EVERYONE"],
+  "taxType": ["TAX", "FREE"],
+  "parallelImported": ["PARALLEL_IMPORTED", "NOT_PARALLEL_IMPORTED"],
+  "overseasPurchased": ["OVERSEAS_PURCHASED", "NOT_OVERSEAS_PURCHASED"],
+  "requestedPreviewDefault": false
+}
