@@ -10,6 +10,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+          cache: npm
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm run typecheck
       - run: npm test
       - run: npm run check
       - run: npm run diagnose -- fixtures/slice0/normal-agri.csv --out tmp/ci-report.json
+      - run: docker build -t commerce-diagnostic-hub:test .
