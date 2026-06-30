@@ -3,20 +3,29 @@
 ## 현재 완료
 
 - Slice-0 CLI
-- Canonical Product 타입과 행 변환
-- 결정적 상품 ID와 주입 가능한 시계
+- Zod SSOT 기반 Canonical Product 타입·검증·행 변환
+- SHA-256 입력 무결성 해시와 결정적 상품 ID
+- 주입 가능한 Clock
 - 정수 basis point 가격 엔진
 - 옵션 수치·단위 정규화
 - 농산물 진단 규칙
+- 행 단위 오류 격리와 `PARTIAL` 실행 상태
 - Mock 메타데이터 신뢰등급 봉인
 - 쿠팡 비실행 payload preview
+- 쿠팡 enum·길이 계약 fixture
 - 4축 준비도 점수
 - JSON·HTML·Issues CSV·Payload JSON
 - 로컬 SQLite 실행 이력
-- 필드 수정 후 재진단
+- 기존 가격정책을 유지하는 필드 수정·재진단
 - 실행 비교 API
 - 로컬 웹 UI
-- Docker와 GitHub Actions
+- 검증된 HTML sanitizer
+- TypeScript strict·Docker·GitHub Actions
+
+## 현재 배포 모드
+
+- LOCAL_SINGLE_USER: Node 22.13 이상 + `node:sqlite`
+- HOSTED_SINGLE_TENANT: 향후 PostgreSQL·작업 큐 어댑터 추가
 
 ## 다음 구현 단계
 
@@ -30,4 +39,4 @@
 
 ## 제한
 
-현재 버전은 외부 판매채널 API를 호출하지 않으며 실제 상품을 등록하지 않습니다. Fixture 메타데이터를 사용하면 항상 `publishReady=false`입니다.
+현재 버전은 외부 판매채널 API를 호출하지 않으며 실제 상품을 등록하지 않습니다. Fixture 메타데이터를 사용하면 항상 `publishReady=false`입니다. Node 22의 내장 SQLite API는 Active development 상태이므로 일반 사용자용 최종 설치판에서는 저장소 어댑터를 다시 평가합니다.
