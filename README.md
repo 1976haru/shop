@@ -5,22 +5,30 @@
 ## 구현된 기능
 
 - CSV 업로드와 CP949/UTF-8 처리
-- Canonical Product 변환과 결정적 상품 코드
+- 행 단위 오류 격리와 `PARTIAL` 실행 상태
+- Zod 기반 Canonical Product 단일 스키마
+- SHA-256 기반 입력 무결성·결정적 상품 코드
 - basis point 정수 가격 계산
 - 브랜드·식별자·카테고리·옵션 단위·고시정보 진단
 - `requested=false` 쿠팡 payload preview
 - PASS/WARNING/BLOCKED 및 4축 준비도
 - JSON·HTML·Issues CSV·Payload JSON 결과
 - 로컬 SQLite 실행 이력
-- 필드 수정 후 재진단
+- 필드 수정 후 기존 가격정책으로 재진단
 - 실행 비교 API
 - 오류 샘플 체험
+- TypeScript strict·경계검사·CLI 스모크 CI
+
+## 요구사항
+
+- Node.js 22.13 이상
+- npm
 
 ## 실행
 
-Node.js 22.5 이상이 필요하며 별도 패키지 설치는 없습니다.
-
 ```bash
+npm install
+npm run typecheck
 npm test
 npm run check
 npm start
@@ -43,12 +51,27 @@ Docker 실행:
 docker compose up --build
 ```
 
+## 저장소 모드
+
+### LOCAL_SINGLE_USER
+
+- `node:sqlite` 사용
+- 단일 PC에서 가볍게 실행하기 위한 기본 모드
+- Node 22의 SQLite API는 Active development 상태이므로 Node 22.13 이상에서만 지원
+- 데이터 파일 기본 위치: `./data/runs.sqlite`
+
+### HOSTED_SINGLE_TENANT
+
+- PostgreSQL·작업 큐는 후속 운영 모드에서 별도 어댑터로 추가
+- 현재 Docker Compose도 LOCAL SQLite 모드만 실행
+
 ## 안전 고지
 
 - 실제 쿠팡 API를 호출하거나 상품을 등록하지 않습니다.
 - preview는 요청 본문 사전보기이며 실제 노출 결과를 보장하지 않습니다.
 - fixture 메타데이터 사용 시 `publishReady=false`입니다.
 - 브랜드·원산지·식별자·인증·세금 정보를 자동으로 추측하지 않습니다.
+- 잘못된 한 행은 전체 실행을 중단시키지 않고 행 단위 `BLOCKED` 결과로 남깁니다.
 
 ## 후속 범위
 
