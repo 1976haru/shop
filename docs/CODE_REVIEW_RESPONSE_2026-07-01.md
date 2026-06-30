@@ -33,6 +33,7 @@
 - sellerProductName 100자 및 itemName 150자 검증
 - Coupang enum·길이 계약 fixture 추가
 - `adultOnly=EVERYONE`, 수입·해외구매대행 기본 enum 계약 테스트
+- npm lockfile과 `npm ci`로 개발·CI·Docker 의존성 설치 통일
 
 ## 의도적으로 유지한 결정
 
@@ -51,7 +52,7 @@
 ## 검증 명령
 
 ```bash
-npm install
+npm ci
 npm run typecheck
 npm test
 npm run check
