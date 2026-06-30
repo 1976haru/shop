@@ -16,3 +16,4 @@ jobs:
       - run: npm test
       - run: npm run check
       - run: npm run diagnose -- fixtures/slice0/normal-agri.csv --out tmp/ci-report.json
+      - run: docker build -t commerce-diagnostic-hub:test .
