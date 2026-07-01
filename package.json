@@ -1,6 +1,6 @@
 {
   "name": "commerce-diagnostic-hub",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "type": "module",
   "engines": { "node": ">=22.13.0" },
@@ -8,8 +8,9 @@
     "diagnose": "node --experimental-strip-types apps/cli/src/index.ts",
     "dev": "node --experimental-strip-types --watch apps/local-web/src/server.ts",
     "start": "node --experimental-strip-types apps/local-web/src/server.ts",
-    "test": "node --experimental-strip-types --test packages/core/test/*.test.ts apps/local-web/test/*.test.ts",
+    "test": "node --experimental-strip-types --test packages/*/test/*.test.ts apps/local-web/test/*.test.ts",
     "test:core": "node --experimental-strip-types --test packages/core/test/*.test.ts",
+    "test:agent": "node --experimental-strip-types --test packages/agent/test/*.test.ts",
     "typecheck": "tsc --noEmit",
     "check": "node --experimental-strip-types scripts/check-boundaries.ts"
   },
