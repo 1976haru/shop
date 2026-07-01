@@ -39,7 +39,7 @@ export async function handleRequest(
     res.writeHead(200, {
       "content-type": asset.type,
       "content-security-policy":
-        "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:"
+        "default-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self' data:"
     });
     res.end(content);
   } catch (error) {
