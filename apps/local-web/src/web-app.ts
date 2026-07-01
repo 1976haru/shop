@@ -12,7 +12,8 @@ const staticFiles: Record<string, { file: string; type: string }> = {
   "/index.html": { file: "index.html", type: "text/html; charset=utf-8" },
   "/app.js": { file: "app.js", type: "text/javascript; charset=utf-8" },
   "/hybrid.js": { file: "hybrid.js", type: "text/javascript; charset=utf-8" },
-  "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" }
+  "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" },
+  "/hybrid.css": { file: "hybrid.css", type: "text/css; charset=utf-8" }
 };
 
 export async function handleRequest(
