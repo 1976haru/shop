@@ -12,7 +12,11 @@ async function walk(path: string): Promise<string[]> {
   return files;
 }
 
-const packageRoots = ["packages/core/src", "packages/agent/src"];
+const packageRoots = [
+  "packages/core/src",
+  "packages/agent/src",
+  "packages/campaign/src"
+];
 const files = (await Promise.all(packageRoots.map(walk))).flat();
 const forbidden = [
   "node:http",
@@ -36,4 +40,4 @@ if (violations.length) {
   process.exit(1);
 }
 
-console.log(`경계 검사 통과: core+agent ${files.length}개 파일`);
+console.log(`경계 검사 통과: core+agent+campaign ${files.length}개 파일`);
