@@ -3,6 +3,7 @@ import { readFile } from "node:fs/promises";
 import { publicRoot } from "./context.ts";
 import { handleBasicApi } from "./api-basic.ts";
 import { handleArtifactApi } from "./api-artifacts.ts";
+import { handleAgentApi } from "./api-agent.ts";
 import { sendJson, sendText } from "./http-utils.ts";
 
 const staticFiles: Record<string, { file: string; type: string }> = {
@@ -12,22 +13,41 @@ const staticFiles: Record<string, { file: string; type: string }> = {
   "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" }
 };
 
-export async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+export async function handleRequest(
+  req: IncomingMessage,
+  res: ServerResponse
+): Promise<void> {
   try {
     const url = new URL(req.url ?? "/", "http://localhost");
+    if (await handleAgentApi(req, res, url)) return;
     if (await handleBasicApi(req, res, url)) return;
     if (handleArtifactApi(req, res, url)) return;
+
     const asset = staticFiles[url.pathname];
     if (!asset) {
-      if (url.pathname.startsWith("/api/")) sendJson(res, 404, { error: { code: "NOT_FOUND", message: "API 경로를 찾을 수 없습니다." } });
-      else sendText(res, 404, "Not found");
+      if (url.pathname.startsWith("/api/")) {
+        sendJson(res, 404, {
+          error: { code: "NOT_FOUND", message: "API 경로를 찾을 수 없습니다." }
+        });
+      } else {
+        sendText(res, 404, "Not found");
+      }
       return;
     }
+
     const content = await readFile(`${publicRoot}/${asset.file}`);
-    res.writeHead(200, { "content-type": asset.type,
-      "content-security-policy": "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:" });
+    res.writeHead(200, {
+      "content-type": asset.type,
+      "content-security-policy":
+        "default-src 'self'; style-src 'self'; script-src 'self'; connect-src 'self'; img-src 'self' data:"
+    });
     res.end(content);
   } catch (error) {
-    sendJson(res, 400, { error: { code: "REQUEST_FAILED", message: error instanceof Error ? error.message : String(error) } });
+    sendJson(res, 400, {
+      error: {
+        code: "REQUEST_FAILED",
+        message: error instanceof Error ? error.message : String(error)
+      }
+    });
   }
 }
