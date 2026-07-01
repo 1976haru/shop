@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import {
   appendPerformance,
@@ -8,8 +9,8 @@ import {
   type CampaignInput,
   type ShortChannel
 } from "../../../packages/campaign/src/index.ts";
-import { store } from "./context.ts";
-import { readJsonBody, sendJson } from "./http-utils.ts";
+import { publicRoot, store } from "./context.ts";
+import { readJsonBody, sendJson, sendText } from "./http-utils.ts";
 
 function nowIso(): string {
   return new Date().toISOString();
@@ -33,6 +34,12 @@ export async function handleCampaignApi(
   url: URL
 ): Promise<boolean> {
   const path = url.pathname;
+
+  if (path === "/hybrid.css" && req.method === "GET") {
+    const css = await readFile(`${publicRoot}/hybrid.css`, "utf8");
+    sendText(res, 200, css, "text/css; charset=utf-8");
+    return true;
+  }
 
   if (path === "/api/campaigns" && req.method === "GET") {
     sendJson(res, 200, { campaigns: store.listCampaigns() });
@@ -136,6 +143,7 @@ export async function handleCampaignApi(
 
   if (segments[3] === "performance" && req.method === "POST") {
     const input = await readJsonBody(req);
+    const note = compactString(input.note);
     const snapshot = buildPerformanceSnapshot({
       id: `PERF-${randomUUID()}`,
       recordedAt: nowIso(),
@@ -146,7 +154,7 @@ export async function handleCampaignApi(
       orders: Number(input.orders ?? 0),
       revenue: Number(input.revenue ?? 0),
       adSpend: Number(input.adSpend ?? 0),
-      ...(compactString(input.note) ? { note: compactString(input.note) } : {})
+      ...(note ? { note } : {})
     });
     const updated = appendPerformance(campaign, snapshot, nowIso());
     store.saveCampaign(updated);
