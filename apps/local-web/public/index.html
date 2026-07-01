@@ -3,25 +3,40 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
   <title>상품 기회 발굴·등록 전 진단기</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <header>
-    <p>LOCAL FIRST · 사람 승인형 에이전트</p>
-    <h1>상품 기회 발굴·등록 전 진단기</h1>
-    <p>유행 테마 탐색부터 공급사 CSV 진단까지 연결하되, 외부 판매 등록은 자동 실행하지 않습니다.</p>
+  <header class="hero">
+    <div class="hero-inner">
+      <div>
+        <p class="hero-kicker">LOCAL FIRST · 사람 승인형 에이전트</p>
+        <h1>상품 기회 발굴·등록 전 진단기</h1>
+        <p class="hero-copy">유망 상품 탐색, 공급사 파일 검수, 가격정책 시뮬레이션과 등록 준비도 확인을 한 화면에서 진행합니다.</p>
+      </div>
+      <div class="hero-safety" aria-label="안전 원칙">
+        <strong>외부 판매 등록 0건</strong>
+        <span>분석과 제안만 수행하며 실제 등록은 사람이 승인합니다.</span>
+      </div>
+    </div>
   </header>
 
   <main>
-    <section class="panel accent">
+    <nav class="workspace-nav" aria-label="작업 영역">
+      <a href="#opportunity">① 상품 기회 찾기</a>
+      <a href="#diagnosis">② CSV 진단</a>
+      <a href="#diagnosis-history">③ 진단 이력</a>
+    </nav>
+
+    <section id="opportunity" class="panel accent">
       <div class="section-title">
         <div>
           <p class="eyebrow">THEME OPPORTUNITY AGENT</p>
           <h2>유망 테마·상품 후보 찾기</h2>
           <p class="muted">농산물, 일반 건강식품, 건강기능식품을 시장성·수익성·공급·운영 관점에서 분석합니다.</p>
         </div>
-        <span class="safety-seal">외부 판매 등록 0건</span>
+        <span class="safety-seal">읽기·제안 전용</span>
       </div>
 
       <div class="agent-form grid-3">
@@ -53,7 +68,7 @@
         <button id="runAgent">에이전트 실행</button>
         <button id="refreshAgentCapabilities" class="secondary">데이터원 상태 확인</button>
       </div>
-      <p id="agentStatus" class="status"></p>
+      <p id="agentStatus" class="status" aria-live="polite"></p>
       <div id="agentCapabilities" class="capabilities"></div>
     </section>
 
@@ -87,40 +102,156 @@
       </div>
     </section>
 
-    <section class="panel">
+    <section class="panel compact-panel">
       <div class="section-title">
-        <h2>최근 에이전트 실행</h2>
+        <div>
+          <p class="eyebrow">AGENT HISTORY</p>
+          <h2>최근 에이전트 실행</h2>
+        </div>
         <button id="refreshAgentHistory" class="secondary small">새로고침</button>
       </div>
-      <div id="agentHistory"></div>
+      <div id="agentHistory" class="history-list"></div>
     </section>
 
-    <section class="panel">
-      <p class="eyebrow">PRODUCT DIAGNOSIS</p>
-      <h2>공급사 CSV 등록 전 진단</h2>
-      <input id="file" type="file" accept=".csv,text/csv">
-      <button id="diagnose">내 파일 진단하기</button>
-      <button id="demo" class="secondary">오류 샘플로 체험하기</button>
-      <p id="status" class="status"></p>
+    <section id="diagnosis" class="panel diagnosis-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">PRODUCT DIAGNOSIS WORKBENCH</p>
+          <h2>공급사 CSV 등록 전 진단</h2>
+          <p class="muted">가격정책을 적용해 등록 가능 여부와 마진 안전성을 진단하고, 막힌 필드는 화면에서 바로 수정합니다.</p>
+        </div>
+        <span class="phase-badge">Phase 1 Workbench</span>
+      </div>
+
+      <div class="diagnosis-grid">
+        <div class="upload-card">
+          <h3>1. 파일 선택</h3>
+          <label class="file-drop" for="file">
+            <strong>공급사 CSV 선택</strong>
+            <span>UTF-8과 CP949 파일을 지원합니다.</span>
+            <input id="file" type="file" accept=".csv,text/csv">
+          </label>
+          <p id="selectedFile" class="selected-file">선택된 파일이 없습니다.</p>
+          <div class="actions">
+            <button id="diagnose">내 파일 진단하기</button>
+            <button id="demo" class="secondary">오류 샘플로 체험하기</button>
+          </div>
+          <p id="status" class="status" aria-live="polite"></p>
+        </div>
+
+        <div class="policy-card">
+          <div class="policy-heading">
+            <div>
+              <h3>2. 가격정책</h3>
+              <p class="muted">비율은 % 단위로 입력합니다. 정책은 이 브라우저에 저장할 수 있습니다.</p>
+            </div>
+            <button id="resetPolicy" class="text-button" type="button">기본값</button>
+          </div>
+          <div class="policy-grid">
+            <label>플랫폼 수수료 (%)
+              <input id="platformFeePercent" type="number" min="0" max="100" step="0.1" value="10.8">
+            </label>
+            <label>광고비 예비율 (%)
+              <input id="adReservePercent" type="number" min="0" max="100" step="0.1" value="5">
+            </label>
+            <label>반품 예비율 (%)
+              <input id="returnReservePercent" type="number" min="0" max="100" step="0.1" value="2">
+            </label>
+            <label>결제비 예비율 (%)
+              <input id="paymentReservePercent" type="number" min="0" max="100" step="0.1" value="0">
+            </label>
+            <label>목표 공헌마진 (%)
+              <input id="targetMarginPercent" type="number" min="0" max="100" step="0.1" value="20">
+            </label>
+            <label>가격 반올림
+              <select id="roundingMode">
+                <option value="END_900">끝자리 900원</option>
+                <option value="END_990">끝자리 990원</option>
+                <option value="CEIL_100">100원 단위 올림</option>
+                <option value="NONE">반올림 없음</option>
+              </select>
+            </label>
+            <label>최저 판매가 선택사항 (원)
+              <input id="minPriceFloor" type="number" min="0" step="100" placeholder="예: 9900">
+            </label>
+          </div>
+          <div class="policy-footer">
+            <button id="savePolicy" class="secondary" type="button">이 브라우저에 정책 저장</button>
+            <span id="policyStatus" class="muted" aria-live="polite"></span>
+          </div>
+        </div>
+      </div>
     </section>
 
-    <section id="result" class="panel hidden">
-      <div id="summary"></div>
-      <div id="downloads"></div>
-      <div id="causes"></div>
-      <div class="table-wrap">
-        <table>
+    <section id="result" class="panel hidden result-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">DIAGNOSIS RESULT</p>
+          <h2>등록 준비도 대시보드</h2>
+        </div>
+        <span id="runStatusBadge" class="badge"></span>
+      </div>
+
+      <div id="readinessDashboard" class="readiness-dashboard"></div>
+      <div id="summary" class="summary"></div>
+
+      <div class="result-toolbar">
+        <div>
+          <h3>결과 다운로드</h3>
+          <div id="downloads"></div>
+        </div>
+        <div>
+          <h3>주요 차단 원인</h3>
+          <div id="causes"></div>
+        </div>
+      </div>
+
+      <div class="table-wrap diagnosis-table-wrap">
+        <table class="diagnosis-table">
           <thead><tr><th>행</th><th>SKU</th><th>판정</th><th>준비도</th><th>문제</th><th>수정</th></tr></thead>
           <tbody id="items"></tbody>
         </table>
       </div>
     </section>
 
-    <section class="panel">
-      <h2>최근 상품 진단</h2>
-      <div id="history"></div>
+    <section id="diagnosis-history" class="panel compact-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">DIAGNOSIS HISTORY</p>
+          <h2>최근 상품 진단</h2>
+        </div>
+      </div>
+      <div id="history" class="history-list"></div>
     </section>
   </main>
+
+  <dialog id="editDialog" class="edit-dialog">
+    <form id="editForm" method="dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">INLINE CORRECTION</p>
+          <h2>상품 필드 수정 후 재진단</h2>
+          <p id="editProductContext" class="muted"></p>
+        </div>
+        <button id="closeEditDialog" class="icon-button" type="button" aria-label="닫기">×</button>
+      </div>
+
+      <div id="editIssueHints" class="edit-hints"></div>
+      <input id="editItemIndex" type="hidden">
+      <label>수정할 표준 필드
+        <select id="editField" required></select>
+      </label>
+      <label>새 값
+        <textarea id="editValue" rows="4" required></textarea>
+      </label>
+      <p id="editCurrentValue" class="current-value"></p>
+      <p id="editStatus" class="status" aria-live="polite"></p>
+      <div class="dialog-actions">
+        <button id="cancelEdit" class="secondary" type="button">취소</button>
+        <button id="submitEdit" type="submit">저장하고 즉시 재진단</button>
+      </div>
+    </form>
+  </dialog>
 
   <script type="module" src="/app.js"></script>
 </body>
