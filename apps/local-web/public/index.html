@@ -4,20 +4,20 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="color-scheme" content="light">
-  <title>상품 기회 발굴·등록 전 진단기</title>
+  <title>쇼핑플로우 AI · 상품발굴부터 쇼핑쇼츠까지</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header class="hero">
     <div class="hero-inner">
       <div>
-        <p class="hero-kicker">LOCAL FIRST · 사람 승인형 에이전트</p>
-        <h1>상품 기회 발굴·등록 전 진단기</h1>
-        <p class="hero-copy">유망 상품 탐색, 공급사 파일 검수, 가격정책 시뮬레이션과 등록 준비도 확인을 한 화면에서 진행합니다.</p>
+        <p class="hero-kicker">LOCAL FIRST · 사람 승인형 AI 커머스 운영실</p>
+        <h1>쇼핑플로우 AI</h1>
+        <p class="hero-copy">상품 후보 발굴과 등록 전 진단부터 쇼핑쇼츠 기획·영상 제작·성과 기록까지 하나의 캠페인으로 연결합니다.</p>
       </div>
       <div class="hero-safety" aria-label="안전 원칙">
-        <strong>외부 판매 등록 0건</strong>
-        <span>분석과 제안만 수행하며 실제 등록은 사람이 승인합니다.</span>
+        <strong>분석·생성 자동화, 외부 게시 0건</strong>
+        <span>사실정보와 광고 고지를 확인한 뒤 사람이 최종 승인합니다.</span>
       </div>
     </div>
   </header>
@@ -25,8 +25,9 @@
   <main>
     <nav class="workspace-nav" aria-label="작업 영역">
       <a href="#opportunity">① 상품 기회 찾기</a>
-      <a href="#diagnosis">② CSV 진단</a>
-      <a href="#diagnosis-history">③ 진단 이력</a>
+      <a href="#diagnosis">② 상품 진단</a>
+      <a href="#shorts-studio">③ 쇼핑쇼츠 만들기</a>
+      <a href="#campaign-history">④ 캠페인 성과</a>
     </nav>
 
     <section id="opportunity" class="panel accent">
@@ -120,7 +121,7 @@
           <h2>공급사 CSV 등록 전 진단</h2>
           <p class="muted">가격정책을 적용해 등록 가능 여부와 마진 안전성을 진단하고, 막힌 필드는 화면에서 바로 수정합니다.</p>
         </div>
-        <span class="phase-badge">Phase 1 Workbench</span>
+        <span class="phase-badge">Diagnostic Core</span>
       </div>
 
       <div class="diagnosis-grid">
@@ -223,6 +224,182 @@
       </div>
       <div id="history" class="history-list"></div>
     </section>
+
+    <section id="shorts-studio" class="panel hybrid-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">HYBRID SHOPPING SHORTS STUDIO</p>
+          <h2>진단 상품에서 쇼핑쇼츠 캠페인 만들기</h2>
+          <p class="muted">등록 가능한 상품을 선택하면 문제 해결형·정보 비교형·구매 전환형 쇼츠 3종과 게시문구·자막·성과추적 구조를 생성합니다.</p>
+        </div>
+        <span class="phase-badge">Hybrid MVP</span>
+      </div>
+
+      <div class="hybrid-flow" aria-label="하이브리드 작업 흐름">
+        <span>상품 진단</span><b>→</b><span>판매 제안</span><b>→</b><span>쇼츠 3종</span><b>→</b><span>영상 출력</span><b>→</b><span>성과 기록</span>
+      </div>
+
+      <div class="campaign-source-grid">
+        <label>원본 진단 이력
+          <select id="campaignRun"></select>
+        </label>
+        <label>캠페인 상품
+          <select id="campaignProduct"></select>
+        </label>
+        <button id="refreshCampaignSources" class="secondary align-end" type="button">진단 이력 새로고침</button>
+      </div>
+
+      <div class="campaign-form-grid">
+        <label>캠페인 이름
+          <input id="campaignName" type="text" maxlength="200" placeholder="예: 여름 제철 복숭아 쇼츠 캠페인">
+        </label>
+        <label>목표 고객
+          <input id="campaignAudience" type="text" maxlength="300" value="온라인에서 가격과 구성을 비교하는 구매자">
+        </label>
+        <label>캠페인 목표
+          <select id="campaignObjective">
+            <option value="CONVERSION">구매 전환</option>
+            <option value="TRAFFIC">판매페이지 유입</option>
+            <option value="AWARENESS">상품 인지도</option>
+          </select>
+        </label>
+        <label>말투
+          <select id="campaignTone">
+            <option value="TRUSTWORTHY">신뢰형</option>
+            <option value="FRIENDLY">친근형</option>
+            <option value="ENERGETIC">활기형</option>
+            <option value="PREMIUM">프리미엄형</option>
+          </select>
+        </label>
+        <label>영상 길이
+          <select id="campaignDuration">
+            <option value="15">15초</option>
+            <option value="30" selected>30초</option>
+            <option value="45">45초</option>
+          </select>
+        </label>
+        <label>광고·경제적 관계
+          <select id="campaignDisclosure">
+            <option value="DIRECT_SALE">직접 판매 상품</option>
+            <option value="AFFILIATE">제휴 링크 수익</option>
+            <option value="SPONSORED">유료 광고</option>
+            <option value="FREE_PRODUCT">제품 무상 제공</option>
+            <option value="NONE">경제적 관계 없음</option>
+          </select>
+        </label>
+        <label class="span-2">판매페이지 링크 선택사항
+          <input id="campaignLandingUrl" type="url" placeholder="https://...">
+        </label>
+        <label class="span-2">사용 금지 표현
+          <textarea id="campaignForbiddenClaims" rows="2" placeholder="쉼표로 구분: 치료, 완치, 무조건, 최고"></textarea>
+        </label>
+      </div>
+
+      <fieldset class="campaign-fieldset">
+        <legend>게시 대상 채널</legend>
+        <div class="checks">
+          <label><input type="checkbox" name="campaignChannel" value="YOUTUBE_SHORTS" checked> YouTube Shorts</label>
+          <label><input type="checkbox" name="campaignChannel" value="INSTAGRAM_REELS"> Instagram Reels</label>
+          <label><input type="checkbox" name="campaignChannel" value="TIKTOK"> TikTok</label>
+          <label><input type="checkbox" name="campaignChannel" value="NAVER_CLIP"> 네이버 클립</label>
+        </div>
+      </fieldset>
+
+      <fieldset class="campaign-fieldset evidence-fieldset">
+        <legend>사실·권리 확인</legend>
+        <div class="checks">
+          <label><input id="campaignOriginConfirmed" type="checkbox"> 원산지 증빙 확인</label>
+          <label><input id="campaignImageRightsConfirmed" type="checkbox"> 이미지 사용권 확인</label>
+          <label><input id="campaignFactsConfirmed" type="checkbox"> 가격·구성·제조사 사실 확인</label>
+        </div>
+      </fieldset>
+
+      <div class="actions">
+        <button id="createCampaign" type="button">쇼핑쇼츠 캠페인 생성</button>
+      </div>
+      <p id="campaignStatus" class="status" aria-live="polite"></p>
+    </section>
+
+    <section id="campaignResult" class="panel campaign-result hidden">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">CAMPAIGN WORKSPACE</p>
+          <h2 id="campaignResultTitle">쇼핑쇼츠 캠페인</h2>
+          <p id="campaignResultProduct" class="muted"></p>
+        </div>
+        <div class="campaign-heading-actions">
+          <span id="campaignApprovalBadge" class="badge"></span>
+          <button id="approveCampaign" class="approve" type="button">사람 검토 승인</button>
+          <button id="exportCampaign" class="secondary" type="button">캠페인 JSON 저장</button>
+        </div>
+      </div>
+
+      <div id="campaignSummary" class="readiness-dashboard"></div>
+      <div id="campaignSafety" class="campaign-safety"></div>
+
+      <div class="creative-layout">
+        <aside>
+          <h3>쇼츠 3종</h3>
+          <div id="campaignCreativeTabs" class="creative-tabs"></div>
+        </aside>
+        <article id="campaignCreativeDetail" class="creative-detail"></article>
+      </div>
+
+      <div class="render-lab">
+        <div>
+          <p class="eyebrow">BROWSER VIDEO RENDERER</p>
+          <h3>상품 이미지로 세로 쇼츠 영상 만들기</h3>
+          <p class="muted">사용권을 확인한 상품 이미지를 넣으면 현재 선택한 대본과 자막으로 9:16 영상을 브라우저에서 생성합니다. 브라우저 지원 시 MP4, 그 외에는 WebM으로 저장됩니다.</p>
+          <label class="file-drop compact" for="shortImages">
+            <strong>상품 이미지 1~10장 선택</strong>
+            <span>JPG·PNG·WebP</span>
+            <input id="shortImages" type="file" accept="image/png,image/jpeg,image/webp" multiple>
+          </label>
+          <div class="actions">
+            <button id="renderShortVideo" type="button">선택 대본으로 영상 생성</button>
+            <button id="downloadSrt" class="secondary" type="button">자막 SRT 저장</button>
+            <button id="downloadPostingCopy" class="secondary" type="button">게시문구 저장</button>
+          </div>
+          <p id="renderStatus" class="status" aria-live="polite"></p>
+        </div>
+        <div class="video-stage">
+          <canvas id="shortCanvas" width="720" height="1280" aria-label="쇼츠 영상 렌더링 캔버스"></canvas>
+          <video id="shortPreview" controls playsinline></video>
+        </div>
+      </div>
+
+      <div class="performance-panel">
+        <div>
+          <p class="eyebrow">CLOSED LOOP PERFORMANCE</p>
+          <h3>조회·클릭·주문 성과 기록</h3>
+          <p class="muted">게시 플랫폼의 수치를 입력하면 클릭률과 주문전환율을 계산해 다음 개선 작업을 제안합니다.</p>
+        </div>
+        <div class="performance-form-grid">
+          <label>채널<select id="performanceChannel"></select></label>
+          <label>쇼츠 버전<select id="performanceCreative"></select></label>
+          <label>조회수<input id="performanceViews" type="number" min="0" value="0"></label>
+          <label>클릭수<input id="performanceClicks" type="number" min="0" value="0"></label>
+          <label>주문수<input id="performanceOrders" type="number" min="0" value="0"></label>
+          <label>매출<input id="performanceRevenue" type="number" min="0" value="0"></label>
+          <label>광고비<input id="performanceAdSpend" type="number" min="0" value="0"></label>
+          <label>메모<input id="performanceNote" type="text" maxlength="500"></label>
+        </div>
+        <div class="actions"><button id="savePerformance" type="button">성과 저장·분석</button></div>
+        <div id="campaignInsight" class="insight-card"></div>
+        <div id="performanceHistory" class="table-wrap"></div>
+      </div>
+    </section>
+
+    <section id="campaign-history" class="panel compact-panel">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">CAMPAIGN HISTORY</p>
+          <h2>쇼핑쇼츠 캠페인 이력</h2>
+        </div>
+        <button id="refreshCampaignHistory" class="secondary small" type="button">새로고침</button>
+      </div>
+      <div id="campaignHistory" class="history-list"></div>
+    </section>
   </main>
 
   <dialog id="editDialog" class="edit-dialog">
@@ -254,5 +431,6 @@
   </dialog>
 
   <script type="module" src="/app.js"></script>
+  <script type="module" src="/hybrid.js"></script>
 </body>
 </html>

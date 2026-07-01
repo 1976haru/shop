@@ -3,6 +3,10 @@ import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { DiagnosisReport } from "../../../packages/core/src/types.ts";
 import { agentRunSchema, type AgentRun } from "../../../packages/agent/src/schema.ts";
+import {
+  hybridCampaignSchema,
+  type HybridCampaign
+} from "../../../packages/campaign/src/schema.ts";
 
 interface DiagnosisRow {
   id: string;
@@ -19,6 +23,15 @@ interface AgentRow {
   execution_status: string;
   approval_status: string;
   run_json: string;
+}
+
+interface CampaignRow {
+  id: string;
+  created_at: string;
+  updated_at: string;
+  approval_status: string;
+  product_title: string;
+  campaign_json: string;
 }
 
 export class RunStore {
@@ -41,6 +54,14 @@ export class RunStore {
       execution_status TEXT NOT NULL,
       approval_status TEXT NOT NULL,
       run_json TEXT NOT NULL
+    )`);
+    this.db.exec(`CREATE TABLE IF NOT EXISTS campaigns (
+      id TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      approval_status TEXT NOT NULL,
+      product_title TEXT NOT NULL,
+      campaign_json TEXT NOT NULL
     )`);
   }
 
@@ -144,5 +165,67 @@ export class RunStore {
 
   deleteAgentRun(id: string): boolean {
     return Number(this.db.prepare(`DELETE FROM agent_runs WHERE id=?`).run(id).changes) > 0;
+  }
+
+  saveCampaign(campaign: HybridCampaign): void {
+    const parsed = hybridCampaignSchema.parse(campaign);
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO campaigns(id,created_at,updated_at,approval_status,product_title,campaign_json) VALUES(?,?,?,?,?,?)`
+      )
+      .run(
+        parsed.id,
+        parsed.createdAt,
+        parsed.updatedAt,
+        parsed.approvalStatus,
+        parsed.input.product.title,
+        JSON.stringify(parsed)
+      );
+  }
+
+  listCampaigns(): Array<{
+    id: string;
+    createdAt: string;
+    updatedAt: string;
+    approvalStatus: HybridCampaign["approvalStatus"];
+    campaignName: string;
+    productTitle: string;
+    channels: HybridCampaign["input"]["channels"];
+    creativeCount: number;
+    performanceCount: number;
+    insight: HybridCampaign["insight"];
+  }> {
+    return (this.db
+      .prepare(
+        `SELECT id,created_at,updated_at,approval_status,product_title,campaign_json FROM campaigns ORDER BY updated_at DESC LIMIT 100`
+      )
+      .all() as unknown as CampaignRow[]).map((row) => {
+      const campaign = hybridCampaignSchema.parse(JSON.parse(row.campaign_json));
+      return {
+        id: row.id,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        approvalStatus: campaign.approvalStatus,
+        campaignName: campaign.input.campaignName,
+        productTitle: row.product_title,
+        channels: campaign.input.channels,
+        creativeCount: campaign.creatives.length,
+        performanceCount: campaign.performanceSnapshots.length,
+        insight: campaign.insight
+      };
+    });
+  }
+
+  getCampaign(id: string): HybridCampaign | undefined {
+    const row = this.db
+      .prepare(
+        `SELECT id,created_at,updated_at,approval_status,product_title,campaign_json FROM campaigns WHERE id=?`
+      )
+      .get(id) as unknown as CampaignRow | undefined;
+    return row ? hybridCampaignSchema.parse(JSON.parse(row.campaign_json)) : undefined;
+  }
+
+  deleteCampaign(id: string): boolean {
+    return Number(this.db.prepare(`DELETE FROM campaigns WHERE id=?`).run(id).changes) > 0;
   }
 }

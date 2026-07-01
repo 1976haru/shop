@@ -4,13 +4,16 @@ import { publicRoot } from "./context.ts";
 import { handleBasicApi } from "./api-basic.ts";
 import { handleArtifactApi } from "./api-artifacts.ts";
 import { handleAgentApi } from "./api-agent.ts";
+import { handleCampaignApi } from "./api-campaigns.ts";
 import { sendJson, sendText } from "./http-utils.ts";
 
 const staticFiles: Record<string, { file: string; type: string }> = {
   "/": { file: "index.html", type: "text/html; charset=utf-8" },
   "/index.html": { file: "index.html", type: "text/html; charset=utf-8" },
   "/app.js": { file: "app.js", type: "text/javascript; charset=utf-8" },
-  "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" }
+  "/hybrid.js": { file: "hybrid.js", type: "text/javascript; charset=utf-8" },
+  "/styles.css": { file: "styles.css", type: "text/css; charset=utf-8" },
+  "/hybrid.css": { file: "hybrid.css", type: "text/css; charset=utf-8" }
 };
 
 export async function handleRequest(
@@ -20,6 +23,7 @@ export async function handleRequest(
   try {
     const url = new URL(req.url ?? "/", "http://localhost");
     if (await handleAgentApi(req, res, url)) return;
+    if (await handleCampaignApi(req, res, url)) return;
     if (await handleBasicApi(req, res, url)) return;
     if (handleArtifactApi(req, res, url)) return;
 
@@ -39,7 +43,7 @@ export async function handleRequest(
     res.writeHead(200, {
       "content-type": asset.type,
       "content-security-policy":
-        "default-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self' data:"
+        "default-src 'self'; style-src 'self'; style-src-attr 'unsafe-inline'; script-src 'self'; connect-src 'self'; img-src 'self' data: blob:; media-src 'self' blob:"
     });
     res.end(content);
   } catch (error) {
