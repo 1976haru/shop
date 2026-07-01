@@ -2,9 +2,28 @@ import { DatabaseSync } from "node:sqlite";
 import { mkdirSync } from "node:fs";
 import { dirname } from "node:path";
 import type { DiagnosisReport } from "../../../packages/core/src/types.ts";
+import { agentRunSchema, type AgentRun } from "../../../packages/agent/src/schema.ts";
+
+interface DiagnosisRow {
+  id: string;
+  created_at: string;
+  filename: string;
+  input_csv: string;
+  report_json: string;
+}
+
+interface AgentRow {
+  id: string;
+  created_at: string;
+  theme: string;
+  execution_status: string;
+  approval_status: string;
+  run_json: string;
+}
 
 export class RunStore {
   db: DatabaseSync;
+
   constructor(path: string) {
     mkdirSync(dirname(path), { recursive: true });
     this.db = new DatabaseSync(path);
@@ -15,21 +34,115 @@ export class RunStore {
       input_csv TEXT NOT NULL,
       report_json TEXT NOT NULL
     )`);
+    this.db.exec(`CREATE TABLE IF NOT EXISTS agent_runs (
+      id TEXT PRIMARY KEY,
+      created_at TEXT NOT NULL,
+      theme TEXT NOT NULL,
+      execution_status TEXT NOT NULL,
+      approval_status TEXT NOT NULL,
+      run_json TEXT NOT NULL
+    )`);
   }
+
   save(report: DiagnosisReport, csv: string): void {
-    this.db.prepare(`INSERT OR REPLACE INTO runs(id,created_at,filename,input_csv,report_json) VALUES(?,?,?,?,?)`)
-      .run(report.run.id, report.generatedAt, report.run.inputFilename, csv, JSON.stringify(report));
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO runs(id,created_at,filename,input_csv,report_json) VALUES(?,?,?,?,?)`
+      )
+      .run(
+        report.run.id,
+        report.generatedAt,
+        report.run.inputFilename,
+        csv,
+        JSON.stringify(report)
+      );
   }
-  list(): Array<{ id: string; createdAt: string; filename: string; summary: DiagnosisReport["summary"] }> {
-    return this.db.prepare(`SELECT id,created_at,filename,report_json FROM runs ORDER BY created_at DESC LIMIT 100`).all()
-      .map((row: any) => ({ id: row.id, createdAt: row.created_at, filename: row.filename,
-        summary: (JSON.parse(row.report_json) as DiagnosisReport).summary }));
+
+  list(): Array<{
+    id: string;
+    createdAt: string;
+    filename: string;
+    summary: DiagnosisReport["summary"];
+  }> {
+    return (this.db
+      .prepare(
+        `SELECT id,created_at,filename,input_csv,report_json FROM runs ORDER BY created_at DESC LIMIT 100`
+      )
+      .all() as unknown as DiagnosisRow[]).map((row) => ({
+      id: row.id,
+      createdAt: row.created_at,
+      filename: row.filename,
+      summary: (JSON.parse(row.report_json) as DiagnosisReport).summary
+    }));
   }
+
   get(id: string): { report: DiagnosisReport; csv: string } | undefined {
-    const row: any = this.db.prepare(`SELECT input_csv,report_json FROM runs WHERE id=?`).get(id);
-    return row ? { csv: row.input_csv, report: JSON.parse(row.report_json) } : undefined;
+    const row = this.db
+      .prepare(`SELECT id,created_at,filename,input_csv,report_json FROM runs WHERE id=?`)
+      .get(id) as unknown as DiagnosisRow | undefined;
+    return row
+      ? {
+          csv: row.input_csv,
+          report: JSON.parse(row.report_json) as DiagnosisReport
+        }
+      : undefined;
   }
+
   delete(id: string): boolean {
     return Number(this.db.prepare(`DELETE FROM runs WHERE id=?`).run(id).changes) > 0;
+  }
+
+  saveAgentRun(run: AgentRun): void {
+    const parsed = agentRunSchema.parse(run);
+    this.db
+      .prepare(
+        `INSERT OR REPLACE INTO agent_runs(id,created_at,theme,execution_status,approval_status,run_json) VALUES(?,?,?,?,?,?)`
+      )
+      .run(
+        parsed.id,
+        parsed.createdAt,
+        parsed.theme,
+        parsed.executionStatus,
+        parsed.approvalStatus,
+        JSON.stringify(parsed)
+      );
+  }
+
+  listAgentRuns(): Array<{
+    id: string;
+    createdAt: string;
+    theme: AgentRun["theme"];
+    executionStatus: AgentRun["executionStatus"];
+    approvalStatus: AgentRun["approvalStatus"];
+    summary: AgentRun["summary"];
+  }> {
+    return (this.db
+      .prepare(
+        `SELECT id,created_at,theme,execution_status,approval_status,run_json FROM agent_runs ORDER BY created_at DESC LIMIT 100`
+      )
+      .all() as unknown as AgentRow[]).map((row) => {
+      const run = agentRunSchema.parse(JSON.parse(row.run_json));
+      return {
+        id: row.id,
+        createdAt: row.created_at,
+        theme: run.theme,
+        executionStatus: run.executionStatus,
+        approvalStatus: run.approvalStatus,
+        summary: run.summary
+      };
+    });
+  }
+
+  getAgentRun(id: string): AgentRun | undefined {
+    const row = this.db
+      .prepare(
+        `SELECT id,created_at,theme,execution_status,approval_status,run_json FROM agent_runs WHERE id=?`
+      )
+      .get(id) as unknown as AgentRow | undefined;
+    return row ? agentRunSchema.parse(JSON.parse(row.run_json)) : undefined;
+  }
+
+  deleteAgentRun(id: string): boolean {
+    return Number(this.db.prepare(`DELETE FROM agent_runs WHERE id=?`).run(id).changes) > 0;
   }
 }
