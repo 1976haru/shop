@@ -50,6 +50,22 @@
 - Node.js 22.13 이상
 - npm
 
+## Windows 빠른 실행
+
+GitHub Desktop으로 저장소를 clone 또는 Pull한 뒤 저장소 루트의 다음 파일을 더블클릭합니다.
+
+```text
+WINDOWS_START.cmd
+```
+
+의존성 설치, 서버 실행, 준비 상태 확인, 브라우저 열기를 자동으로 수행합니다. 전체 코드 검사는 다음 파일을 사용합니다.
+
+```text
+WINDOWS_CHECK.cmd
+```
+
+GitHub Desktop 복제와 Claude Code·Codex 병행 절차는 [`docs/DESKTOP_SETUP_KO.md`](docs/DESKTOP_SETUP_KO.md)를 참고합니다.
+
 ## 실행
 
 ```bash
