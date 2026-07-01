@@ -41,6 +41,19 @@ export async function handleCampaignApi(
     return true;
   }
 
+  if (path === "/hybrid.js" && req.method === "GET") {
+    const script = await readFile(`${publicRoot}/hybrid.js`, "utf8");
+    const styleLoader = [
+      "const hybridStyleLink = document.createElement('link');",
+      "hybridStyleLink.rel = 'stylesheet';",
+      "hybridStyleLink.href = '/hybrid.css';",
+      "document.head.append(hybridStyleLink);",
+      ""
+    ].join("\n");
+    sendText(res, 200, `${styleLoader}${script}`, "text/javascript; charset=utf-8");
+    return true;
+  }
+
   if (path === "/api/campaigns" && req.method === "GET") {
     sendJson(res, 200, { campaigns: store.listCampaigns() });
     return true;
