@@ -1,0 +1,273 @@
+{
+  "generatedAt": "2026-07-01T00:00:00Z",
+  "notice": "데모용 기준 데이터입니다. 실제 최신 시장수요를 의미하지 않습니다.",
+  "themes": {
+    "AGRI_KR": [
+      {
+        "id": "agri-sweet-potato-3kg",
+        "theme": "AGRI_KR",
+        "name": "저장성 고구마 3kg",
+        "keywords": ["고구마", "밤고구마", "농산물"],
+        "cost": 11000,
+        "supplierShipFee": 3000,
+        "fixedCost": 800,
+        "marketPrice": 22900,
+        "stock": 120,
+        "demandTrendScore": 72,
+        "seasonalityScore": 68,
+        "competitionAttractivenessScore": 64,
+        "priceStabilityScore": 74,
+        "supplyStabilityScore": 82,
+        "operationEaseScore": 78,
+        "shippingRiskScore": 28,
+        "complianceGate": "PASS",
+        "complianceReasons": [],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "저장성 농산물 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      },
+      {
+        "id": "agri-mixed-grain-2kg",
+        "theme": "AGRI_KR",
+        "name": "국산 혼합잡곡 2kg",
+        "keywords": ["잡곡", "혼합곡", "국산곡물"],
+        "cost": 12500,
+        "supplierShipFee": 2500,
+        "fixedCost": 600,
+        "marketPrice": 25900,
+        "stock": 90,
+        "demandTrendScore": 76,
+        "seasonalityScore": 74,
+        "competitionAttractivenessScore": 70,
+        "priceStabilityScore": 81,
+        "supplyStabilityScore": 84,
+        "operationEaseScore": 88,
+        "shippingRiskScore": 18,
+        "complianceGate": "PASS",
+        "complianceReasons": [],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "상온 곡물 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      },
+      {
+        "id": "agri-dried-vegetable-set",
+        "theme": "AGRI_KR",
+        "name": "국산 건나물 세트",
+        "keywords": ["건나물", "나물세트", "지역특산물"],
+        "cost": 15000,
+        "supplierShipFee": 3000,
+        "fixedCost": 900,
+        "marketPrice": 32900,
+        "stock": 55,
+        "demandTrendScore": 67,
+        "seasonalityScore": 76,
+        "competitionAttractivenessScore": 73,
+        "priceStabilityScore": 78,
+        "supplyStabilityScore": 72,
+        "operationEaseScore": 86,
+        "shippingRiskScore": 16,
+        "complianceGate": "WARNING",
+        "complianceReasons": ["품목별 원산지와 생산자 표시를 확인해야 합니다."],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "건조 농산물 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      },
+      {
+        "id": "agri-apple-5kg",
+        "theme": "AGRI_KR",
+        "name": "산지 사과 5kg",
+        "keywords": ["사과", "과일", "산지직송"],
+        "cost": 18000,
+        "supplierShipFee": 3500,
+        "fixedCost": 1200,
+        "marketPrice": 32900,
+        "stock": 70,
+        "demandTrendScore": 82,
+        "seasonalityScore": 84,
+        "competitionAttractivenessScore": 46,
+        "priceStabilityScore": 54,
+        "supplyStabilityScore": 62,
+        "operationEaseScore": 55,
+        "shippingRiskScore": 62,
+        "complianceGate": "WARNING",
+        "complianceReasons": ["선별 기준, 중량 오차, 파손 보상정책을 확인해야 합니다."],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "신선과일 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      }
+    ],
+    "GENERAL_HEALTH_FOOD_KR": [
+      {
+        "id": "food-sugarfree-nutbar",
+        "theme": "GENERAL_HEALTH_FOOD_KR",
+        "name": "무가당 견과 곡물바",
+        "keywords": ["무가당", "견과바", "곡물간식"],
+        "cost": 9800,
+        "supplierShipFee": 2500,
+        "fixedCost": 500,
+        "marketPrice": 22900,
+        "stock": 150,
+        "demandTrendScore": 80,
+        "seasonalityScore": 72,
+        "competitionAttractivenessScore": 62,
+        "priceStabilityScore": 77,
+        "supplyStabilityScore": 86,
+        "operationEaseScore": 91,
+        "shippingRiskScore": 12,
+        "complianceGate": "WARNING",
+        "complianceReasons": ["일반식품을 건강기능식품처럼 광고하지 않아야 합니다."],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "헬시플레저 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      },
+      {
+        "id": "food-protein-grain-snack",
+        "theme": "GENERAL_HEALTH_FOOD_KR",
+        "name": "고단백 곡물 스낵",
+        "keywords": ["고단백", "곡물스낵", "간식"],
+        "cost": 10500,
+        "supplierShipFee": 2500,
+        "fixedCost": 600,
+        "marketPrice": 24900,
+        "stock": 100,
+        "demandTrendScore": 84,
+        "seasonalityScore": 75,
+        "competitionAttractivenessScore": 58,
+        "priceStabilityScore": 73,
+        "supplyStabilityScore": 80,
+        "operationEaseScore": 88,
+        "shippingRiskScore": 14,
+        "complianceGate": "WARNING",
+        "complianceReasons": ["단백질 함량과 영양성분 표시 근거를 확인해야 합니다."],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "고단백 식품 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      },
+      {
+        "id": "food-unsweetened-soy",
+        "theme": "GENERAL_HEALTH_FOOD_KR",
+        "name": "무가당 두유 묶음",
+        "keywords": ["무가당두유", "두유", "식물성음료"],
+        "cost": 14500,
+        "supplierShipFee": 3000,
+        "fixedCost": 500,
+        "marketPrice": 28900,
+        "stock": 80,
+        "demandTrendScore": 77,
+        "seasonalityScore": 78,
+        "competitionAttractivenessScore": 48,
+        "priceStabilityScore": 82,
+        "supplyStabilityScore": 88,
+        "operationEaseScore": 72,
+        "shippingRiskScore": 36,
+        "complianceGate": "WARNING",
+        "complianceReasons": ["제품 유형, 알레르기, 소비기한과 보관방법을 확인해야 합니다."],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "식물성 음료 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      }
+    ],
+    "HEALTH_SUPPLEMENT_KR": [
+      {
+        "id": "supplement-vitamin-d",
+        "theme": "HEALTH_SUPPLEMENT_KR",
+        "name": "비타민D 건강기능식품",
+        "keywords": ["비타민D", "건강기능식품"],
+        "cost": 9000,
+        "supplierShipFee": 2500,
+        "fixedCost": 700,
+        "marketPrice": 23900,
+        "stock": 60,
+        "demandTrendScore": 76,
+        "seasonalityScore": 71,
+        "competitionAttractivenessScore": 43,
+        "priceStabilityScore": 76,
+        "supplyStabilityScore": 78,
+        "operationEaseScore": 82,
+        "shippingRiskScore": 10,
+        "complianceGate": "WARNING",
+        "complianceReasons": ["품목제조신고, 기능성 내용, 섭취 시 주의사항을 확인해야 합니다."],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "건기식 규정검증 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      },
+      {
+        "id": "supplement-probiotics",
+        "theme": "HEALTH_SUPPLEMENT_KR",
+        "name": "프로바이오틱스 건강기능식품",
+        "keywords": ["프로바이오틱스", "유산균", "건강기능식품"],
+        "cost": 12500,
+        "supplierShipFee": 2500,
+        "fixedCost": 700,
+        "marketPrice": 29900,
+        "stock": 45,
+        "demandTrendScore": 82,
+        "seasonalityScore": 75,
+        "competitionAttractivenessScore": 38,
+        "priceStabilityScore": 70,
+        "supplyStabilityScore": 75,
+        "operationEaseScore": 80,
+        "shippingRiskScore": 16,
+        "complianceGate": "WARNING",
+        "complianceReasons": ["보장균수, 보관조건, 품목제조신고와 허용 광고문구를 확인해야 합니다."],
+        "evidence": [
+          {
+            "source": "FIXTURE",
+            "label": "건기식 규정검증 데모 기준",
+            "capturedAt": "2026-07-01T00:00:00Z",
+            "freshness": "FIXTURE",
+            "reference": "fixtures/agent/theme-opportunities.json"
+          }
+        ]
+      }
+    ]
+  }
+}

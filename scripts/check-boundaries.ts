@@ -12,16 +12,28 @@ async function walk(path: string): Promise<string[]> {
   return files;
 }
 
-const files = await walk("packages/core/src");
-const forbidden = ["node:http", "node:https", "node:net", "node:dns", "node:sqlite"];
+const packageRoots = ["packages/core/src", "packages/agent/src"];
+const files = (await Promise.all(packageRoots.map(walk))).flat();
+const forbidden = [
+  "node:http",
+  "node:https",
+  "node:net",
+  "node:dns",
+  "node:sqlite"
+];
 const violations: string[] = [];
+
 for (const file of files) {
   const content = await readFile(file, "utf8");
-  for (const token of forbidden) if (content.includes(token)) violations.push(`${file}: ${token}`);
+  for (const token of forbidden) {
+    if (content.includes(token)) violations.push(`${file}: ${token}`);
+  }
   if (/\bfetch\s*\(/.test(content)) violations.push(`${file}: fetch()`);
 }
+
 if (violations.length) {
   console.error(violations.join("\n"));
   process.exit(1);
 }
-console.log(`경계 검사 통과: core ${files.length}개 파일`);
+
+console.log(`경계 검사 통과: core+agent ${files.length}개 파일`);

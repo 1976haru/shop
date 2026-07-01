@@ -3,37 +3,125 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>상품 등록 전 진단기</title>
+  <title>상품 기회 발굴·등록 전 진단기</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
   <header>
-    <p>LOCAL · 외부 전송 없음</p>
-    <h1>상품 등록 전 진단기</h1>
-    <p>공급사 CSV의 누락 정보, 옵션, 마진, 고시정보를 검사합니다.</p>
+    <p>LOCAL FIRST · 사람 승인형 에이전트</p>
+    <h1>상품 기회 발굴·등록 전 진단기</h1>
+    <p>유행 테마 탐색부터 공급사 CSV 진단까지 연결하되, 외부 판매 등록은 자동 실행하지 않습니다.</p>
   </header>
+
   <main>
+    <section class="panel accent">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">THEME OPPORTUNITY AGENT</p>
+          <h2>유망 테마·상품 후보 찾기</h2>
+          <p class="muted">농산물, 일반 건강식품, 건강기능식품을 시장성·수익성·공급·운영 관점에서 분석합니다.</p>
+        </div>
+        <span class="safety-seal">외부 판매 등록 0건</span>
+      </div>
+
+      <div class="agent-form grid-3">
+        <label>테마
+          <select id="agentTheme">
+            <option value="AGRI_KR">농산물·지역특산품</option>
+            <option value="GENERAL_HEALTH_FOOD_KR">일반 건강식품·헬시플레저</option>
+            <option value="HEALTH_SUPPLEMENT_KR">건강기능식품</option>
+          </select>
+        </label>
+        <label>분석 모드
+          <select id="agentMode">
+            <option value="DEMO">데모 데이터로 체험</option>
+            <option value="LIVE">공식 API 실시간 수집</option>
+          </select>
+        </label>
+        <label>공급사 CSV 선택사항
+          <input id="agentFile" type="file" accept=".csv,text/csv">
+        </label>
+      </div>
+
+      <div class="checks">
+        <label><input id="originEvidence" type="checkbox"> 원산지 증빙 보유</label>
+        <label><input id="imageRights" type="checkbox"> 이미지 사용권 확인</label>
+        <label><input id="healthReported" type="checkbox"> 건강기능식품 일반판매업 신고 확인</label>
+      </div>
+
+      <div class="actions">
+        <button id="runAgent">에이전트 실행</button>
+        <button id="refreshAgentCapabilities" class="secondary">데이터원 상태 확인</button>
+      </div>
+      <p id="agentStatus" class="status"></p>
+      <div id="agentCapabilities" class="capabilities"></div>
+    </section>
+
+    <section id="agentResult" class="panel hidden">
+      <div class="section-title">
+        <div>
+          <p class="eyebrow">AGENT RESULT</p>
+          <h2>에이전트 분석 결과</h2>
+        </div>
+        <button id="approveAgent" class="approve">선택 후보 검토 승인</button>
+      </div>
+      <div id="agentSummary" class="summary"></div>
+      <div id="agentWarnings"></div>
+
+      <h3>실행 계획</h3>
+      <div id="agentPlan" class="plan"></div>
+
+      <h3>데이터원</h3>
+      <div id="agentSources" class="source-grid"></div>
+
+      <h3>추천 후보</h3>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>승인</th><th>순위</th><th>상품 후보</th><th>판정</th><th>종합점수</th><th>예상가격·마진</th><th>이유·위험</th>
+            </tr>
+          </thead>
+          <tbody id="agentCandidates"></tbody>
+        </table>
+      </div>
+    </section>
+
     <section class="panel">
-      <h2>CSV 진단</h2>
+      <div class="section-title">
+        <h2>최근 에이전트 실행</h2>
+        <button id="refreshAgentHistory" class="secondary small">새로고침</button>
+      </div>
+      <div id="agentHistory"></div>
+    </section>
+
+    <section class="panel">
+      <p class="eyebrow">PRODUCT DIAGNOSIS</p>
+      <h2>공급사 CSV 등록 전 진단</h2>
       <input id="file" type="file" accept=".csv,text/csv">
       <button id="diagnose">내 파일 진단하기</button>
-      <button id="demo">오류 샘플로 체험하기</button>
-      <p id="status"></p>
+      <button id="demo" class="secondary">오류 샘플로 체험하기</button>
+      <p id="status" class="status"></p>
     </section>
+
     <section id="result" class="panel hidden">
       <div id="summary"></div>
       <div id="downloads"></div>
       <div id="causes"></div>
-      <table>
-        <thead><tr><th>행</th><th>SKU</th><th>판정</th><th>준비도</th><th>문제</th><th>수정</th></tr></thead>
-        <tbody id="items"></tbody>
-      </table>
+      <div class="table-wrap">
+        <table>
+          <thead><tr><th>행</th><th>SKU</th><th>판정</th><th>준비도</th><th>문제</th><th>수정</th></tr></thead>
+          <tbody id="items"></tbody>
+        </table>
+      </div>
     </section>
+
     <section class="panel">
-      <h2>최근 진단</h2>
+      <h2>최근 상품 진단</h2>
       <div id="history"></div>
     </section>
   </main>
+
   <script type="module" src="/app.js"></script>
 </body>
 </html>
