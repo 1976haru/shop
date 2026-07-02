@@ -1,0 +1,1647 @@
+From b5d1472d44355f90abeea1be6dea7be2d1f8d203 Mon Sep 17 00:00:00 2001
+From: Claude <noreply@anthropic.com>
+Date: Thu, 2 Jul 2026 09:56:18 +0000
+Subject: [PATCH] =?UTF-8?q?feat(R1):=20ffmpeg=20=EC=87=BC=EC=B8=A0=20?=
+ =?UTF-8?q?=EB=A0=8C=EB=8D=94=EB=9F=AC=20=E2=80=94=20=EC=8A=B9=EC=9D=B8?=
+ =?UTF-8?q?=EB=90=9C=20=EC=BA=A0=ED=8E=98=EC=9D=B8=20=E2=86=92=20mp4?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+- packages/campaign/render-plan.ts: 순수 렌더 계획 (결정적 씬 타입 유추,
+  가격/CTA 카드 값은 campaign offer/product에서만 파생 — 임의 주입 경로 없음)
+- shortSceneSchema에 sceneType(optional) 추가 (하위호환)
+- apps/renderer: ffmpeg 실행기 (켄번즈 zoompan / drawtext textfile 카드 /
+  concat / SRT 자막 번인, 한글 폰트 자동 감지, 미설치 시 한국어 안내)
+- CLI: npm run render / render:demo
+- fixtures/render: 데모 캠페인(APPROVED) + 합성 상품 이미지
+- 테스트 +8 (골든 7 + 통합 렌더 1): 34/34 통과, typecheck/경계검사 통과
+
+게이트: 미승인·BLOCKED 캠페인 렌더 거부. 자동 업로드 없음(사람 검토 필수).
+---
+ CLAUDE.md                                  |  66 +++--
+ apps/renderer/src/ffmpeg.ts                | 267 +++++++++++++++++++++
+ apps/renderer/src/index.ts                 |  70 ++++++
+ apps/renderer/test/renderer.test.ts        |  34 +++
+ fixtures/render/demo-campaign.json         | 247 +++++++++++++++++++
+ fixtures/render/product.png                | Bin 0 -> 50516 bytes
+ package.json                               |  10 +-
+ packages/campaign/src/index.ts             |   1 +
+ packages/campaign/src/render-plan.ts       | 181 ++++++++++++++
+ packages/campaign/src/schema.ts            |   6 +-
+ packages/campaign/test/render-plan.test.ts |  69 ++++++
+ 11 files changed, 921 insertions(+), 30 deletions(-)
+ create mode 100644 apps/renderer/src/ffmpeg.ts
+ create mode 100644 apps/renderer/src/index.ts
+ create mode 100644 apps/renderer/test/renderer.test.ts
+ create mode 100644 fixtures/render/demo-campaign.json
+ create mode 100644 fixtures/render/product.png
+ create mode 100644 packages/campaign/src/render-plan.ts
+ create mode 100644 packages/campaign/test/render-plan.test.ts
+
+diff --git a/CLAUDE.md b/CLAUDE.md
+index 3725748..ba8d4c1 100644
+--- a/CLAUDE.md
++++ b/CLAUDE.md
+@@ -1,31 +1,45 @@
+-# CLAUDE.md
++# CLAUDE.md — commerce-diagnostic-hub 작업 규칙
+ 
+-이 저장소는 유망 상품 후보를 찾고 공급사 상품 CSV를 등록 전에 진단·교정하는 로컬 우선 도구다.
++## 프로젝트 한 줄
++검증된 사실만 상품 등록·쇼핑쇼츠가 되는 로컬 우선 커머스 자동화.
++"제안은 자동, 실행은 사람 승인"이 정체성이다.
+ 
+-## 구현 원칙
++## 명령어
++- 의존성: `npm ci` (테스트 전 필수 — 미설치가 최다 실패 원인)
++- 테스트: `npm test` / 코어만: `npm run test:core`
++- 타입검사: `npm run typecheck`
++- 경계검사: `npm run check` (core·agent·campaign에 네트워크/DB import 금지)
++- 실행: `APP_PORT=3000 npm start` (PORT 아님 주의)
++- 진단 CLI: `npm run diagnose fixtures/slice0/normal-agri.csv`
++- 렌더 데모: `npm run render:demo` (ffmpeg + 한글 폰트 필요)
+ 
+-- 첫 제품은 쿠팡 등록기가 아니라 기회 발굴·등록 전 진단기다.
+-- `packages/core`와 `packages/agent`는 결정적 순수 함수로 유지한다.
+-- Canonical 데이터 계약은 `packages/core/src/domain-schema.ts`가 SSOT다.
+-- Agent 계약은 `packages/agent/src/schema.ts`가 SSOT다.
+-- 네트워크 호출은 `apps/local-web/src/agent-sources.ts` 같은 adapter에서만 수행한다.
+-- 에이전트는 후보와 작업목록을 만들고 사람 승인까지 저장하지만 외부 판매 등록은 하지 않는다.
+-- `BLOCKED` 후보는 승인할 수 없다.
+-- 건강기능식품 판매업 신고가 확인되지 않으면 `BLOCKED`다.
+-- 검색 관심도는 판매량이 아니다.
+-- fixture 결과는 실제 최신 유행을 의미하지 않는다.
+-- 같은 입력, 정책, 메타데이터 버전은 같은 결과를 만들어야 한다.
+-- 한 행의 오류는 `BLOCKED` 또는 `DIAGNOSIS_ROW_ERROR`로 격리하고 다음 행을 계속 처리한다.
+-- 한 외부 데이터원 실패는 가능한 경우 실행을 `PARTIAL`로 남기고 다른 근거로 분석을 계속한다.
+-- Mock 메타데이터 사용 시 `publishReady=false`다.
+-- payload preview는 실제 노출 결과를 보장하지 않는다.
+-- 자동수정은 공백, 안전한 단위 정규화, HTML 정제 등 사실을 바꾸지 않는 범위만 허용한다.
++## 절대 규칙 (위반 시 PR 거부됨)
++1. packages/core, packages/agent, packages/campaign 안에서 fetch/네트워크/DB 금지.
++   외부 호출은 apps/* 계층에서만. `npm run check`가 이를 강제한다.
++2. 타입은 Zod 스키마에서 z.infer로만 파생. 수동 interface 중복 선언 금지.
++3. 골든 픽스처(fixtures/)의 기대값 변경은 커밋 메시지에
++   `BREAKING-FIXTURE:` 접두어 + 사유 명시. 몰래 수정 금지.
++4. 자동 업로드/자동 게시/채널 쓰기 API 호출 코드 작성 금지.
++   모든 산출물은 requiresHumanReview 또는 승인 게이트를 거친다.
++5. 돈 계산은 정수(원, basis point)만. 부동소수 요율 연산 금지 (money.ts 패턴).
++6. 결정성: Date.now()/Math.random() 직접 호출 금지. Clock/createId 주입 사용.
++   (예외: 렌더 임시파일 등 비순수 apps 계층의 OS 상호작용)
++7. API 키·시크릿은 .env만. 코드/픽스처/커밋 포함 금지. BYOK 원칙:
++   외부 유료 API(AI영상/TTS)는 사용자 키를 .env에서 읽는 구조로만.
++8. 영상 속 사실(가격·구성·원산지)은 승인된 캠페인 데이터에서만 파생.
++   렌더러에 임의 텍스트 주입 경로를 만들지 않는다 (FACT_SOURCE_MISMATCH 예방).
+ 
+-## 완료 기준
++## 작업 방식
++- 테스트 우선: 구현 전에 골든 픽스처/테스트를 먼저 커밋한다.
++- 한 세션 = 한 슬라이스 = 한 PR. 범위를 넘는 리팩터링 금지.
++- 세션 종료 전 필수: npm ci && npm test && npm run typecheck && npm run check 전부 통과.
++- 막히면 우회 구현하지 말고 BLOCKED.md에 상황을 적고 멈춘다.
+ 
+-- `npm run typecheck`
+-- `npm test`
+-- `npm run check`
+-- 에이전트 DEMO 모드 3개 테마 실행
+-- `npm run diagnose -- fixtures/slice0/normal-agri.csv`
+-- `npm start` 후 http://127.0.0.1:3000 접속
++## 아키텍처 지도
++- packages/core: 진단·가격·payload (순수)
++- packages/campaign: 쇼츠 캠페인·크리에이티브·렌더 계획 (순수)
++- packages/agent: 리서치 에이전트 로직 (순수)
++- apps/local-web: 서버·UI·SQLite·외부 데이터원 (비순수 허용)
++- apps/renderer: ffmpeg 렌더 실행기 (비순수 허용)
++- apps/cli: 진단 CLI
++- fixtures/: 골든 정답지 · docs/: 명세 (구현 전 반드시 해당 명세 읽기)
+diff --git a/apps/renderer/src/ffmpeg.ts b/apps/renderer/src/ffmpeg.ts
+new file mode 100644
+index 0000000..227ad17
+--- /dev/null
++++ b/apps/renderer/src/ffmpeg.ts
+@@ -0,0 +1,267 @@
++import { execFileSync } from "node:child_process";
++import { mkdtempSync, writeFileSync, rmSync, existsSync } from "node:fs";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++import {
++  formatKrw,
++  type RenderPlan,
++  type RenderScenePlan
++} from "../../../packages/campaign/src/index.ts";
++
++/**
++ * R1 ffmpeg 렌더러 (비순수 계층).
++ * RenderPlan + 대표 이미지 1장 → 720x1280 mp4.
++ * 카드 텍스트는 drawtext textfile 로만 주입한다(이스케이프·한글 안전, 임의 문자열 CLI 주입 차단).
++ */
++
++export class RendererError extends Error {
++  readonly code: string;
++  constructor(code: string, message: string) {
++    super(message);
++    this.name = "RendererError";
++    this.code = code;
++  }
++}
++
++function run(bin: string, args: string[]): string {
++  try {
++    return execFileSync(bin, args, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] });
++  } catch (error) {
++    const stderr =
++      typeof error === "object" && error !== null && "stderr" in error
++        ? String((error as { stderr: unknown }).stderr)
++        : String(error);
++    throw new RendererError("FFMPEG_FAILED", `${bin} 실행 실패:\n${stderr.slice(-2000)}`);
++  }
++}
++
++export function assertFfmpegAvailable(): void {
++  try {
++    execFileSync("ffmpeg", ["-version"], { stdio: "ignore" });
++    execFileSync("ffprobe", ["-version"], { stdio: "ignore" });
++  } catch {
++    throw new RendererError(
++      "FFMPEG_NOT_FOUND",
++      "ffmpeg/ffprobe를 찾을 수 없습니다. 설치 후 다시 시도하세요.\n" +
++        "  - Ubuntu/Debian: sudo apt-get install -y ffmpeg\n" +
++        "  - macOS: brew install ffmpeg\n" +
++        "  - Windows: winget install Gyan.FFmpeg (설치 후 새 터미널)"
++    );
++  }
++}
++
++export interface KoreanFont {
++  file: string;
++  family: string;
++}
++
++export function findKoreanFont(): KoreanFont {
++  try {
++    const file = execFileSync("fc-match", ["-f", "%{file}", ":lang=ko"], {
++      encoding: "utf8"
++    }).trim();
++    const family = execFileSync("fc-match", ["-f", "%{family}", ":lang=ko"], {
++      encoding: "utf8"
++    })
++      .trim()
++      .split(",")[0];
++    if (!file || !existsSync(file)) throw new Error("no font file");
++    return { file, family };
++  } catch {
++    throw new RendererError(
++      "KOREAN_FONT_NOT_FOUND",
++      "한글 렌더 가능한 폰트를 찾지 못했습니다. 나눔 또는 Noto CJK 폰트를 설치하세요.\n" +
++        "  - Ubuntu/Debian: sudo apt-get install -y fonts-nanum (또는 fonts-noto-cjk)\n" +
++        "  - Windows/macOS: 시스템에 한글 폰트가 있으면 자동 감지됩니다 (fontconfig 필요)"
++    );
++  }
++}
++
++interface SceneRenderContext {
++  workdir: string;
++  font: KoreanFont;
++  imagePath: string;
++  fps: number;
++}
++
++/** drawtext용 텍스트 파일 생성(이스케이프 불필요, 한글 안전) */
++function textFile(ctx: SceneRenderContext, name: string, content: string): string {
++  const path = join(ctx.workdir, `${name}.txt`);
++  writeFileSync(path, content, "utf8");
++  return path;
++}
++
++function drawText(opts: {
++  file: string;
++  fontfile: string;
++  size: number;
++  color: string;
++  y: string;
++  box?: boolean;
++}): string {
++  const box = opts.box ? ":box=1:boxcolor=0x000000AA:boxborderw=18" : "";
++  return (
++    `drawtext=textfile='${opts.file}':fontfile='${opts.fontfile}'` +
++    `:fontsize=${opts.size}:fontcolor=${opts.color}` +
++    `:x=(w-text_w)/2:y=${opts.y}${box}`
++  );
++}
++
++function renderKenburnsSegment(
++  scene: RenderScenePlan,
++  ctx: SceneRenderContext,
++  out: string
++): void {
++  const frames = Math.max(1, Math.round(scene.durationSeconds * ctx.fps));
++  const vf =
++    "scale=1440:2560:force_original_aspect_ratio=increase,crop=1440:2560," +
++    `zoompan=z='min(1+0.10*on/${frames},1.15)':d=${frames}` +
++    `:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=720x1280:fps=${ctx.fps},` +
++    "format=yuv420p";
++  run("ffmpeg", [
++    "-y", "-loglevel", "error",
++    "-i", ctx.imagePath,
++    "-vf", vf,
++    "-frames:v", String(frames),
++    "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
++    out
++  ]);
++}
++
++function renderCardSegment(
++  scene: RenderScenePlan,
++  ctx: SceneRenderContext,
++  out: string
++): void {
++  const filters: string[] = [];
++  const f = ctx.font.file;
++
++  if (scene.sceneType === "PRICE_CARD" && scene.priceCard) {
++    const p = scene.priceCard;
++    filters.push(
++      drawText({ file: textFile(ctx, `t${scene.order}`, p.productTitle), fontfile: f, size: 46, color: "white", y: "400" })
++    );
++    if (typeof p.listPriceKrw === "number" && p.listPriceKrw > p.sellPriceKrw) {
++      filters.push(
++        drawText({ file: textFile(ctx, `l${scene.order}`, `정가 ${formatKrw(p.listPriceKrw)}`), fontfile: f, size: 34, color: "0x94A3B8", y: "500" })
++      );
++    }
++    filters.push(
++      drawText({ file: textFile(ctx, `p${scene.order}`, formatKrw(p.sellPriceKrw)), fontfile: f, size: 96, color: "0xF2C063", y: "570" }),
++      drawText({ file: textFile(ctx, `o${scene.order}`, `${p.optionSummary} · ${p.originDisplay}`), fontfile: f, size: 36, color: "white", y: "730" })
++    );
++  } else if (scene.sceneType === "CTA_CARD" && scene.ctaCard) {
++    const c = scene.ctaCard;
++    filters.push(
++      drawText({ file: textFile(ctx, `c${scene.order}`, c.callToAction), fontfile: f, size: 56, color: "white", y: "540" }),
++      // 표시광고 고지: 하단 고정, 박스 처리(가독성)
++      drawText({ file: textFile(ctx, `d${scene.order}`, c.disclosureText), fontfile: f, size: 30, color: "white", y: "h-180", box: true })
++    );
++  }
++  filters.push("format=yuv420p");
++
++  run("ffmpeg", [
++    "-y", "-loglevel", "error",
++    "-f", "lavfi",
++    "-i", `color=c=0x0F172A:s=720x1280:d=${scene.durationSeconds}:r=${ctx.fps}`,
++    "-vf", filters.join(","),
++    "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
++    out
++  ]);
++}
++
++export interface RenderResult {
++  outputPath: string;
++  durationSeconds: number;
++  width: number;
++  height: number;
++}
++
++export function renderPlanToMp4(opts: {
++  plan: RenderPlan;
++  imagePath: string;
++  outputPath: string;
++  keepWorkdir?: boolean;
++}): RenderResult {
++  assertFfmpegAvailable();
++  const font = findKoreanFont();
++
++  if (!existsSync(opts.imagePath)) {
++    throw new RendererError("IMAGE_NOT_FOUND", `대표 이미지를 찾을 수 없습니다: ${opts.imagePath}`);
++  }
++
++  const workdir = mkdtempSync(join(tmpdir(), "shorts-render-"));
++  const ctx: SceneRenderContext = {
++    workdir,
++    font,
++    imagePath: opts.imagePath,
++    fps: opts.plan.fps
++  };
++
++  try {
++    // 1) 씬별 세그먼트
++    const segments: string[] = [];
++    for (const scene of opts.plan.scenes) {
++      const seg = join(workdir, `seg-${String(scene.order).padStart(2, "0")}.mp4`);
++      if (scene.sceneType === "PRODUCT_KENBURNS") {
++        renderKenburnsSegment(scene, ctx, seg);
++      } else {
++        renderCardSegment(scene, ctx, seg);
++      }
++      segments.push(seg);
++    }
++
++    // 2) concat
++    const listPath = join(workdir, "concat.txt");
++    writeFileSync(listPath, segments.map((s) => `file '${s}'`).join("\n"), "utf8");
++    const merged = join(workdir, "merged.mp4");
++    run("ffmpeg", [
++      "-y", "-loglevel", "error",
++      "-f", "concat", "-safe", "0",
++      "-i", listPath,
++      "-c", "copy",
++      merged
++    ]);
++
++    // 3) SRT 자막 번인 (진단 통과값에서 생성된 자막만 — 계획의 subtitleSrt)
++    const srtPath = join(workdir, "captions.srt");
++    writeFileSync(srtPath, opts.plan.subtitleSrt, "utf8");
++    run("ffmpeg", [
++      "-y", "-loglevel", "error",
++      "-i", merged,
++      "-vf",
++      `subtitles='${srtPath}':force_style='FontName=${font.family},FontSize=13,PrimaryColour=&HFFFFFF&,Outline=2,MarginV=42'`,
++      "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
++      opts.outputPath
++    ]);
++
++    const probe = probeMp4(opts.outputPath);
++    return { outputPath: opts.outputPath, ...probe };
++  } finally {
++    if (!opts.keepWorkdir) rmSync(workdir, { recursive: true, force: true });
++  }
++}
++
++export function probeMp4(path: string): {
++  durationSeconds: number;
++  width: number;
++  height: number;
++} {
++  const raw = run("ffprobe", [
++    "-v", "error",
++    "-select_streams", "v:0",
++    "-show_entries", "stream=width,height:format=duration",
++    "-of", "json",
++    path
++  ]);
++  const parsed = JSON.parse(raw) as {
++    streams?: Array<{ width?: number; height?: number }>;
++    format?: { duration?: string };
++  };
++  const stream = parsed.streams?.[0];
++  return {
++    width: stream?.width ?? 0,
++    height: stream?.height ?? 0,
++    durationSeconds: Number(parsed.format?.duration ?? 0)
++  };
++}
+diff --git a/apps/renderer/src/index.ts b/apps/renderer/src/index.ts
+new file mode 100644
+index 0000000..87640bd
+--- /dev/null
++++ b/apps/renderer/src/index.ts
+@@ -0,0 +1,70 @@
++import { readFileSync } from "node:fs";
++import { parseArgs } from "node:util";
++import { buildRenderPlan, RenderPlanError } from "../../../packages/campaign/src/index.ts";
++import { renderPlanToMp4, RendererError } from "./ffmpeg.ts";
++
++/**
++ * R1 렌더 CLI.
++ * 사용:
++ *   npm run render -- --campaign fixtures/render/demo-campaign.json \
++ *     --creative CMP-DEMO-0001-conversion \
++ *     --image fixtures/render/product.png --out out/demo.mp4
++ *
++ * 원칙: 이 CLI는 텍스트/가격을 인자로 받지 않는다.
++ * 영상 속 모든 사실은 승인된 캠페인 JSON에서만 나온다.
++ */
++
++function main(): number {
++  const { values } = parseArgs({
++    options: {
++      campaign: { type: "string" },
++      creative: { type: "string" },
++      image: { type: "string" },
++      out: { type: "string" },
++      "keep-workdir": { type: "boolean", default: false }
++    }
++  });
++
++  if (!values.campaign || !values.creative || !values.image || !values.out) {
++    console.error(
++      "사용법: npm run render -- --campaign <campaign.json> --creative <id> --image <대표이미지> --out <출력.mp4>"
++    );
++    return 2;
++  }
++
++  let campaignJson: unknown;
++  try {
++    campaignJson = JSON.parse(readFileSync(values.campaign, "utf8"));
++  } catch (error) {
++    console.error(`캠페인 JSON을 읽을 수 없습니다: ${values.campaign}`);
++    console.error(error instanceof Error ? error.message : String(error));
++    return 2;
++  }
++
++  try {
++    const plan = buildRenderPlan(campaignJson, values.creative);
++    console.log(
++      `렌더 계획: ${plan.scenes.length}씬 · ${plan.totalDurationSeconds}s · ` +
++        plan.scenes.map((s) => s.sceneType).join(" → ")
++    );
++    const result = renderPlanToMp4({
++      plan,
++      imagePath: values.image,
++      outputPath: values.out,
++      keepWorkdir: values["keep-workdir"]
++    });
++    console.log(
++      `완료: ${result.outputPath} (${result.width}x${result.height}, ${result.durationSeconds.toFixed(1)}s)`
++    );
++    console.log("주의: 게시 전 사람 검토 필수(requiresHumanReview). 자동 업로드는 지원하지 않습니다.");
++    return 0;
++  } catch (error) {
++    if (error instanceof RenderPlanError || error instanceof RendererError) {
++      console.error(`[${error.code}] ${error.message}`);
++      return 1;
++    }
++    throw error;
++  }
++}
++
++process.exitCode = main();
+diff --git a/apps/renderer/test/renderer.test.ts b/apps/renderer/test/renderer.test.ts
+new file mode 100644
+index 0000000..686076e
+--- /dev/null
++++ b/apps/renderer/test/renderer.test.ts
+@@ -0,0 +1,34 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { readFileSync, mkdtempSync } from "node:fs";
++import { tmpdir } from "node:os";
++import { join } from "node:path";
++import { execFileSync } from "node:child_process";
++import { buildRenderPlan } from "../../../packages/campaign/src/index.ts";
++import { renderPlanToMp4 } from "../src/ffmpeg.ts";
++
++function hasFfmpeg(): boolean {
++  try {
++    execFileSync("ffmpeg", ["-version"], { stdio: "ignore" });
++    execFileSync("fc-match", ["-f", "%{file}", ":lang=ko"], { stdio: "ignore" });
++    return true;
++  } catch {
++    return false;
++  }
++}
++
++test("통합: 데모 캠페인 → mp4 (720x1280, 15s, 자막 번인)", { skip: !hasFfmpeg() && "ffmpeg 또는 한글 폰트 없음" }, () => {
++  const demo = JSON.parse(
++    readFileSync(new URL("../../../fixtures/render/demo-campaign.json", import.meta.url), "utf8")
++  );
++  const plan = buildRenderPlan(demo, demo.creatives[2].id);
++  const out = join(mkdtempSync(join(tmpdir(), "render-test-")), "demo.mp4");
++  const result = renderPlanToMp4({
++    plan,
++    imagePath: new URL("../../../fixtures/render/product.png", import.meta.url).pathname,
++    outputPath: out
++  });
++  assert.equal(result.width, 720);
++  assert.equal(result.height, 1280);
++  assert.ok(Math.abs(result.durationSeconds - 15) < 0.8, `길이 이탈: ${result.durationSeconds}s`);
++});
+diff --git a/fixtures/render/demo-campaign.json b/fixtures/render/demo-campaign.json
+new file mode 100644
+index 0000000..8eb9229
+--- /dev/null
++++ b/fixtures/render/demo-campaign.json
+@@ -0,0 +1,247 @@
++{
++  "schemaVersion": "1.0.0",
++  "id": "CMP-DEMO-0001",
++  "createdAt": "2026-07-02T00:00:00.000Z",
++  "updatedAt": "2026-07-02T00:00:00.000Z",
++  "approvalStatus": "APPROVED",
++  "input": {
++    "campaignName": "청송사과 데모",
++    "objective": "CONVERSION",
++    "targetAudience": "과일 정기구매 30대",
++    "tone": "TRUSTWORTHY",
++    "durationSeconds": 15,
++    "channels": [
++      "YOUTUBE_SHORTS"
++    ],
++    "disclosureType": "DIRECT_SALE",
++    "forbiddenClaims": [],
++    "evidence": {
++      "originConfirmed": true,
++      "imageRightsConfirmed": true,
++      "factsConfirmed": true
++    },
++    "product": {
++      "sourceRunId": "RUN-DEMO",
++      "sourceItemIndex": 0,
++      "supplierSku": "SUP-APPLE-5KG",
++      "title": "청송 사과 부사 5kg",
++      "manufacturer": "청송농원",
++      "originDisplay": "국산(경북 청송)",
++      "optionSummary": "중량 5kg",
++      "sellPrice": 19900,
++      "listPrice": 22900,
++      "compliancePack": "AGRI_KR"
++    }
++  },
++  "offer": {
++    "channelTitle": "국산(경북 청송) 청송 사과 부사 5kg 중량 5kg",
++    "sellPrice": 19900,
++    "listPrice": 22900,
++    "callToAction": "판매페이지 연결 후 최종 조건 확인"
++  },
++  "creatives": [
++    {
++      "id": "CMP-DEMO-0001-problem_solving",
++      "angle": "PROBLEM_SOLVING",
++      "name": "문제 해결형",
++      "hook": "과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요.",
++      "title": "청송 사과 부사 5kg 구매 전 확인 | 문제 해결형",
++      "description": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.\n중량 5kg, 원산지 국산(경북 청송), 19,900원인지 차례로 확인합니다.\n상품: 청송 사과 부사 5kg\n구성: 중량 5kg\n원산지: 국산(경북 청송)\n가격: 19,900원\n구매페이지는 최종 게시 전에 연결하세요.\n최종 가격·재고·배송조건은 판매페이지에서 다시 확인하세요.",
++      "pinnedComment": "구매 링크가 연결되면 이 댓글을 업데이트하세요.",
++      "hashtags": [
++        "#청송",
++        "#사과",
++        "#부사",
++        "#5kg",
++        "#쇼핑쇼츠",
++        "#구매가이드",
++        "#상품비교",
++        "#농산물"
++      ],
++      "disclosureText": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.",
++      "scenes": [
++        {
++          "order": 1,
++          "startSecond": 0,
++          "endSecond": 3.75,
++          "visualDirection": "대표 상품 이미지를 크게 배치하고 핵심 후킹 자막을 표시",
++          "caption": "과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요.",
++          "narration": "과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요."
++        },
++        {
++          "order": 2,
++          "startSecond": 3.75,
++          "endSecond": 7.5,
++          "visualDirection": "상품 전체 모습과 포장 정보를 천천히 확대",
++          "caption": "구매 전 확인해야 할 정보를 차분하게 정리합니다.",
++          "narration": "구매 전 확인해야 할 정보를 차분하게 정리합니다."
++        },
++        {
++          "order": 3,
++          "startSecond": 7.5,
++          "endSecond": 11.25,
++          "visualDirection": "구성·옵션 텍스트를 이미지 위에 명확하게 표시",
++          "caption": "구성: 중량 5kg",
++          "narration": "구성: 중량 5kg"
++        },
++        {
++          "order": 4,
++          "startSecond": 11.25,
++          "endSecond": 15,
++          "visualDirection": "원산지·제조사 정보를 증빙 확인 표시와 함께 노출",
++          "caption": "원산지: 국산(경북 청송)",
++          "narration": "과장된 표현보다 실제 구성과 배송 조건을 비교한 뒤 결정하세요."
++        }
++      ],
++      "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,750\n과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요.\n\n2\n00:00:03,750 --> 00:00:07,500\n구매 전 확인해야 할 정보를 차분하게 정리합니다.\n\n3\n00:00:07,500 --> 00:00:11,250\n구성: 중량 5kg\n\n4\n00:00:11,250 --> 00:00:15,000\n원산지: 국산(경북 청송)\n",
++      "renderManifest": {
++        "width": 720,
++        "height": 1280,
++        "aspectRatio": "9:16",
++        "durationSeconds": 15,
++        "requiresHumanReview": true,
++        "outputPreference": "MP4_IF_SUPPORTED"
++      }
++    },
++    {
++      "id": "CMP-DEMO-0001-information",
++      "angle": "INFORMATION",
++      "name": "정보 비교형",
++      "hook": "청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요.",
++      "title": "청송 사과 부사 5kg 구매 전 확인 | 정보 비교형",
++      "description": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.\n현재 확인된 정보는 중량 5kg, 제조사 청송농원, 원산지 국산(경북 청송)입니다.\n상품: 청송 사과 부사 5kg\n구성: 중량 5kg\n원산지: 국산(경북 청송)\n가격: 19,900원\n구매페이지는 최종 게시 전에 연결하세요.\n최종 가격·재고·배송조건은 판매페이지에서 다시 확인하세요.",
++      "pinnedComment": "구매 링크가 연결되면 이 댓글을 업데이트하세요.",
++      "hashtags": [
++        "#청송",
++        "#사과",
++        "#부사",
++        "#5kg",
++        "#쇼핑쇼츠",
++        "#구매가이드",
++        "#상품비교",
++        "#농산물"
++      ],
++      "disclosureText": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.",
++      "scenes": [
++        {
++          "order": 1,
++          "startSecond": 0,
++          "endSecond": 3.75,
++          "visualDirection": "대표 상품 이미지를 크게 배치하고 핵심 후킹 자막을 표시",
++          "caption": "청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요.",
++          "narration": "청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요."
++        },
++        {
++          "order": 2,
++          "startSecond": 3.75,
++          "endSecond": 7.5,
++          "visualDirection": "상품 전체 모습과 포장 정보를 천천히 확대",
++          "caption": "구매 전 확인해야 할 정보를 차분하게 정리합니다.",
++          "narration": "구매 전 확인해야 할 정보를 차분하게 정리합니다."
++        },
++        {
++          "order": 3,
++          "startSecond": 7.5,
++          "endSecond": 11.25,
++          "visualDirection": "구성·옵션 텍스트를 이미지 위에 명확하게 표시",
++          "caption": "구성: 중량 5kg",
++          "narration": "구성: 중량 5kg"
++        },
++        {
++          "order": 4,
++          "startSecond": 11.25,
++          "endSecond": 15,
++          "visualDirection": "원산지·제조사 정보를 증빙 확인 표시와 함께 노출",
++          "caption": "원산지: 국산(경북 청송)",
++          "narration": "가격과 옵션이 내 사용 목적에 맞는지 판매페이지에서 다시 확인하세요."
++        }
++      ],
++      "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,750\n청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요.\n\n2\n00:00:03,750 --> 00:00:07,500\n구매 전 확인해야 할 정보를 차분하게 정리합니다.\n\n3\n00:00:07,500 --> 00:00:11,250\n구성: 중량 5kg\n\n4\n00:00:11,250 --> 00:00:15,000\n원산지: 국산(경북 청송)\n",
++      "renderManifest": {
++        "width": 720,
++        "height": 1280,
++        "aspectRatio": "9:16",
++        "durationSeconds": 15,
++        "requiresHumanReview": true,
++        "outputPreference": "MP4_IF_SUPPORTED"
++      }
++    },
++    {
++      "id": "CMP-DEMO-0001-conversion",
++      "angle": "CONVERSION",
++      "name": "구매 전환형",
++      "hook": "청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요.",
++      "title": "청송 사과 부사 5kg 구매 전 확인 | 구매 전환형",
++      "description": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.\n중량 5kg 구성에 판매가 기준 19,900원입니다.\n상품: 청송 사과 부사 5kg\n구성: 중량 5kg\n원산지: 국산(경북 청송)\n가격: 19,900원\n구매페이지는 최종 게시 전에 연결하세요.\n최종 가격·재고·배송조건은 판매페이지에서 다시 확인하세요.",
++      "pinnedComment": "구매 링크가 연결되면 이 댓글을 업데이트하세요.",
++      "hashtags": [
++        "#청송",
++        "#사과",
++        "#부사",
++        "#5kg",
++        "#쇼핑쇼츠",
++        "#구매가이드",
++        "#상품비교",
++        "#농산물"
++      ],
++      "disclosureText": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.",
++      "scenes": [
++        {
++          "order": 1,
++          "startSecond": 0,
++          "endSecond": 3.75,
++          "visualDirection": "대표 상품 이미지를 크게 배치하고 핵심 후킹 자막을 표시",
++          "caption": "청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요.",
++          "narration": "청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요."
++        },
++        {
++          "order": 2,
++          "startSecond": 3.75,
++          "endSecond": 7.5,
++          "visualDirection": "상품 전체 모습과 포장 정보를 천천히 확대",
++          "caption": "구매 전 확인해야 할 정보를 차분하게 정리합니다.",
++          "narration": "구매 전 확인해야 할 정보를 차분하게 정리합니다."
++        },
++        {
++          "order": 3,
++          "startSecond": 7.5,
++          "endSecond": 11.25,
++          "visualDirection": "구성·옵션 텍스트를 이미지 위에 명확하게 표시",
++          "caption": "구성: 중량 5kg",
++          "narration": "구성: 중량 5kg"
++        },
++        {
++          "order": 4,
++          "startSecond": 11.25,
++          "endSecond": 15,
++          "visualDirection": "원산지·제조사 정보를 증빙 확인 표시와 함께 노출",
++          "caption": "원산지: 국산(경북 청송)",
++          "narration": "판매페이지가 연결되면 재고와 최종 조건을 확인하세요."
++        }
++      ],
++      "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,750\n청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요.\n\n2\n00:00:03,750 --> 00:00:07,500\n구매 전 확인해야 할 정보를 차분하게 정리합니다.\n\n3\n00:00:07,500 --> 00:00:11,250\n구성: 중량 5kg\n\n4\n00:00:11,250 --> 00:00:15,000\n원산지: 국산(경북 청송)\n",
++      "renderManifest": {
++        "width": 720,
++        "height": 1280,
++        "aspectRatio": "9:16",
++        "durationSeconds": 15,
++        "requiresHumanReview": true,
++        "outputPreference": "MP4_IF_SUPPORTED"
++      }
++    }
++  ],
++  "safetyIssues": [
++    {
++      "code": "LANDING_URL_MISSING",
++      "severity": "WARNING",
++      "message": "구매 링크가 없어 쇼츠의 클릭 성과를 측정하기 어렵습니다.",
++      "fix": "실제 판매페이지가 준비되면 링크를 추가하고 캠페인을 다시 생성하세요."
++    }
++  ],
++  "performanceSnapshots": [],
++  "insight": {
++    "type": "NO_DATA",
++    "message": "아직 성과 데이터가 없습니다.",
++    "nextAction": "쇼츠를 게시한 뒤 조회·클릭·주문·매출을 기록하세요."
++  }
++}
+\ No newline at end of file
+diff --git a/fixtures/render/product.png b/fixtures/render/product.png
+new file mode 100644
+index 0000000000000000000000000000000000000000..1d60ce801d0ea2104a689f3a56c4d793466aebd2
+GIT binary patch
+literal 50516
+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
+HQ_}wnp~HB*
+
+literal 0
+HcmV?d00001
+
+diff --git a/package.json b/package.json
+index cecfbe2..17b6d62 100644
+--- a/package.json
++++ b/package.json
+@@ -3,16 +3,20 @@
+   "version": "0.3.0",
+   "private": true,
+   "type": "module",
+-  "engines": { "node": ">=22.13.0" },
++  "engines": {
++    "node": ">=22.13.0"
++  },
+   "scripts": {
+     "diagnose": "node --env-file-if-exists=.env --experimental-strip-types apps/cli/src/index.ts",
+     "dev": "node --env-file-if-exists=.env --experimental-strip-types --watch apps/local-web/src/server.ts",
+     "start": "node --env-file-if-exists=.env --experimental-strip-types apps/local-web/src/server.ts",
+-    "test": "node --experimental-strip-types --test packages/*/test/*.test.ts apps/local-web/test/*.test.ts",
++    "test": "node --experimental-strip-types --test packages/*/test/*.test.ts apps/local-web/test/*.test.ts apps/renderer/test/*.test.ts",
+     "test:core": "node --experimental-strip-types --test packages/core/test/*.test.ts",
+     "test:agent": "node --experimental-strip-types --test packages/agent/test/*.test.ts",
+     "typecheck": "tsc --noEmit",
+-    "check": "node --experimental-strip-types scripts/check-boundaries.ts"
++    "check": "node --experimental-strip-types scripts/check-boundaries.ts",
++    "render": "node --env-file-if-exists=.env --experimental-strip-types apps/renderer/src/index.ts",
++    "render:demo": "node --experimental-strip-types apps/renderer/src/index.ts --campaign fixtures/render/demo-campaign.json --creative CMP-DEMO-0001-conversion --image fixtures/render/product.png --out tmp/demo.mp4"
+   },
+   "dependencies": {
+     "sanitize-html": "2.17.5",
+diff --git a/packages/campaign/src/index.ts b/packages/campaign/src/index.ts
+index 3fb15d8..5a17802 100644
+--- a/packages/campaign/src/index.ts
++++ b/packages/campaign/src/index.ts
+@@ -1,2 +1,3 @@
+ export * from "./schema.ts";
+ export * from "./generator.ts";
++export * from "./render-plan.ts";
+diff --git a/packages/campaign/src/render-plan.ts b/packages/campaign/src/render-plan.ts
+new file mode 100644
+index 0000000..4587673
+--- /dev/null
++++ b/packages/campaign/src/render-plan.ts
+@@ -0,0 +1,181 @@
++import { z } from "zod";
++import {
++  hybridCampaignSchema,
++  sceneTypeSchema,
++  type HybridCampaign
++} from "./schema.ts";
++
++/**
++ * R1 렌더 계획(순수).
++ * 크리에이티브를 ffmpeg 등 렌더러가 실행할 수 있는 결정적 계획으로 변환한다.
++ *
++ * 핵심 불변식(FACT_SOURCE_MISMATCH 예방):
++ * - PRICE_CARD / CTA_CARD 의 모든 텍스트·숫자는 campaign(offer/input.product/creative)
++ *   에서만 파생된다. 이 모듈은 임의 문자열 입력 경로를 제공하지 않는다.
++ * - 승인(APPROVED)되지 않은 캠페인은 계획 생성 자체를 거부한다.
++ */
++
++export const renderScenePlanSchema = z.object({
++  order: z.number().int().positive(),
++  sceneType: sceneTypeSchema,
++  startSecond: z.number().nonnegative(),
++  endSecond: z.number().positive(),
++  durationSeconds: z.number().positive(),
++  caption: z.string().min(1),
++  narration: z.string().min(1),
++  /** PRODUCT_KENBURNS 전용: 사용할 이미지 슬롯(R1은 대표 이미지 1장) */
++  imageSlot: z.literal("PRIMARY").optional(),
++  priceCard: z
++    .object({
++      productTitle: z.string().min(1),
++      sellPriceKrw: z.number().int().nonnegative(),
++      listPriceKrw: z.number().int().nonnegative().optional(),
++      optionSummary: z.string().min(1),
++      originDisplay: z.string().min(1)
++    })
++    .optional(),
++  ctaCard: z
++    .object({
++      callToAction: z.string().min(1),
++      disclosureText: z.string().min(1),
++      landingUrl: z.string().url().optional()
++    })
++    .optional()
++});
++
++export const renderPlanSchema = z.object({
++  schemaVersion: z.literal("1.0.0"),
++  campaignId: z.string().min(1),
++  creativeId: z.string().min(1),
++  width: z.literal(720),
++  height: z.literal(1280),
++  fps: z.literal(30),
++  totalDurationSeconds: z.number().positive(),
++  scenes: z.array(renderScenePlanSchema).min(1),
++  subtitleSrt: z.string().min(1),
++  disclosureText: z.string().min(1)
++});
++
++export type RenderPlan = z.infer<typeof renderPlanSchema>;
++export type RenderScenePlan = z.infer<typeof renderScenePlanSchema>;
++
++export class RenderPlanError extends Error {
++  readonly code: string;
++  constructor(code: string, message: string) {
++    super(message);
++    this.name = "RenderPlanError";
++    this.code = code;
++  }
++}
++
++/**
++ * 결정적 씬 타입 유추(하위호환).
++ * - scene.sceneType 명시가 항상 우선
++ * - 마지막 씬 → CTA_CARD
++ * - sellPrice가 있으면 끝에서 두 번째 씬 → PRICE_CARD
++ * - 나머지 → PRODUCT_KENBURNS
++ */
++function inferSceneType(
++  index: number,
++  total: number,
++  hasSellPrice: boolean,
++  explicit?: z.infer<typeof sceneTypeSchema>
++): z.infer<typeof sceneTypeSchema> {
++  if (explicit) return explicit;
++  if (index === total - 1) return "CTA_CARD";
++  if (hasSellPrice && index === total - 2) return "PRICE_CARD";
++  return "PRODUCT_KENBURNS";
++}
++
++export function buildRenderPlan(
++  campaignInput: unknown,
++  creativeId: string
++): RenderPlan {
++  const campaign: HybridCampaign = hybridCampaignSchema.parse(campaignInput);
++
++  if (campaign.approvalStatus !== "APPROVED") {
++    throw new RenderPlanError(
++      "CAMPAIGN_NOT_APPROVED",
++      `승인되지 않은 캠페인은 렌더할 수 없습니다 (현재 상태: ${campaign.approvalStatus}). 승인 후 다시 시도하세요.`
++    );
++  }
++
++  const blocked = campaign.safetyIssues.filter((i) => i.severity === "BLOCKED");
++  if (blocked.length > 0) {
++    throw new RenderPlanError(
++      "CAMPAIGN_BLOCKED",
++      `차단(BLOCKED) 이슈가 있는 캠페인은 렌더할 수 없습니다: ${blocked
++        .map((i) => i.code)
++        .join(", ")}`
++    );
++  }
++
++  const creative = campaign.creatives.find((c) => c.id === creativeId);
++  if (!creative) {
++    throw new RenderPlanError(
++      "CREATIVE_NOT_FOUND",
++      `크리에이티브를 찾을 수 없습니다: ${creativeId}`
++    );
++  }
++
++  const hasSellPrice = typeof campaign.offer.sellPrice === "number";
++  const total = creative.scenes.length;
++
++  const scenes: RenderScenePlan[] = creative.scenes.map((scene, index) => {
++    const sceneType = inferSceneType(index, total, hasSellPrice, scene.sceneType);
++    const base = {
++      order: scene.order,
++      sceneType,
++      startSecond: scene.startSecond,
++      endSecond: scene.endSecond,
++      durationSeconds: Math.max(0.1, scene.endSecond - scene.startSecond),
++      caption: scene.caption,
++      narration: scene.narration
++    };
++
++    if (sceneType === "PRICE_CARD") {
++      // 사실 고정: 값은 campaign에서만 파생
++      return {
++        ...base,
++        priceCard: {
++          productTitle: campaign.input.product.title,
++          sellPriceKrw: campaign.offer.sellPrice ?? 0,
++          listPriceKrw: campaign.offer.listPrice,
++          optionSummary: campaign.input.product.optionSummary,
++          originDisplay: campaign.input.product.originDisplay
++        }
++      };
++    }
++    if (sceneType === "CTA_CARD") {
++      return {
++        ...base,
++        ctaCard: {
++          callToAction: campaign.offer.callToAction,
++          disclosureText: creative.disclosureText,
++          landingUrl: campaign.offer.landingUrl
++        }
++      };
++    }
++    return { ...base, imageSlot: "PRIMARY" as const };
++  });
++
++  const plan: RenderPlan = {
++    schemaVersion: "1.0.0",
++    campaignId: campaign.id,
++    creativeId: creative.id,
++    width: 720,
++    height: 1280,
++    fps: 30,
++    totalDurationSeconds: creative.renderManifest.durationSeconds,
++    scenes,
++    subtitleSrt: creative.subtitleSrt,
++    disclosureText: creative.disclosureText
++  };
++
++  return renderPlanSchema.parse(plan);
++}
++
++/** 원화 표기(렌더러 공용): 19900 → "19,900원" */
++export function formatKrw(amount: number): string {
++  return `${new Intl.NumberFormat("ko-KR").format(amount)}원`;
++}
+diff --git a/packages/campaign/src/schema.ts b/packages/campaign/src/schema.ts
+index 4b53ead..ddd58fb 100644
+--- a/packages/campaign/src/schema.ts
++++ b/packages/campaign/src/schema.ts
+@@ -77,13 +77,17 @@ export const campaignInputSchema = z.object({
+   product: campaignProductSchema
+ });
+ 
++export const sceneTypeSchema = z.enum(["PRODUCT_KENBURNS", "PRICE_CARD", "CTA_CARD"]);
++
+ export const shortSceneSchema = z.object({
+   order: z.number().int().positive(),
+   startSecond: z.number().nonnegative(),
+   endSecond: z.number().positive(),
+   visualDirection: z.string().min(1),
+   caption: z.string().min(1).max(180),
+-  narration: z.string().min(1).max(300)
++  narration: z.string().min(1).max(300),
++  // R1: 미지정 시 렌더 계획 단계에서 결정적으로 유추(하위호환)
++  sceneType: sceneTypeSchema.optional()
+ });
+ 
+ export const creativeVariantSchema = z.object({
+diff --git a/packages/campaign/test/render-plan.test.ts b/packages/campaign/test/render-plan.test.ts
+new file mode 100644
+index 0000000..6b4fcf3
+--- /dev/null
++++ b/packages/campaign/test/render-plan.test.ts
+@@ -0,0 +1,69 @@
++import assert from "node:assert/strict";
++import test from "node:test";
++import { readFileSync } from "node:fs";
++import { buildRenderPlan, RenderPlanError, formatKrw } from "../src/index.ts";
++
++const demo = JSON.parse(
++  readFileSync(new URL("../../../fixtures/render/demo-campaign.json", import.meta.url), "utf8")
++);
++
++test("렌더 계획: 결정적 씬 타입 유추(마지막 CTA, 그 앞 PRICE, 나머지 켄번즈)", () => {
++  const plan = buildRenderPlan(demo, demo.creatives[2].id);
++  const types = plan.scenes.map((s) => s.sceneType);
++  assert.equal(types.at(-1), "CTA_CARD");
++  assert.equal(types.at(-2), "PRICE_CARD");
++  assert.ok(types.slice(0, -2).every((t) => t === "PRODUCT_KENBURNS"));
++  assert.equal(plan.width, 720);
++  assert.equal(plan.height, 1280);
++  assert.equal(plan.totalDurationSeconds, 15);
++});
++
++test("렌더 계획: 가격카드 값은 캠페인 offer에서만 파생 (FACT_SOURCE_MISMATCH 예방)", () => {
++  const plan = buildRenderPlan(demo, demo.creatives[0].id);
++  const price = plan.scenes.find((s) => s.sceneType === "PRICE_CARD")?.priceCard;
++  assert.ok(price);
++  assert.equal(price.sellPriceKrw, demo.offer.sellPrice);
++  assert.equal(price.listPriceKrw, demo.offer.listPrice);
++  assert.equal(price.productTitle, demo.input.product.title);
++  assert.equal(price.originDisplay, demo.input.product.originDisplay);
++});
++
++test("렌더 계획: CTA 카드에 표시광고 고지 문구가 포함된다", () => {
++  const plan = buildRenderPlan(demo, demo.creatives[0].id);
++  const cta = plan.scenes.find((s) => s.sceneType === "CTA_CARD")?.ctaCard;
++  assert.ok(cta);
++  assert.equal(cta.disclosureText, demo.creatives[0].disclosureText);
++  assert.equal(cta.callToAction, demo.offer.callToAction);
++});
++
++test("렌더 계획: 미승인 캠페인은 거부된다", () => {
++  const draft = structuredClone(demo);
++  draft.approvalStatus = "AWAITING_APPROVAL";
++  assert.throws(
++    () => buildRenderPlan(draft, demo.creatives[0].id),
++    (e: unknown) => e instanceof RenderPlanError && e.code === "CAMPAIGN_NOT_APPROVED"
++  );
++});
++
++test("렌더 계획: BLOCKED 이슈가 있으면 거부된다", () => {
++  const blocked = structuredClone(demo);
++  blocked.safetyIssues = [
++    { code: "IMAGE_RIGHTS_NOT_CONFIRMED", severity: "BLOCKED", message: "x", fix: "y" }
++  ];
++  assert.throws(
++    () => buildRenderPlan(blocked, demo.creatives[0].id),
++    (e: unknown) => e instanceof RenderPlanError && e.code === "CAMPAIGN_BLOCKED"
++  );
++});
++
++test("렌더 계획: 없는 크리에이티브는 거부된다", () => {
++  assert.throws(
++    () => buildRenderPlan(demo, "NOPE"),
++    (e: unknown) => e instanceof RenderPlanError && e.code === "CREATIVE_NOT_FOUND"
++  );
++});
++
++test("원화 표기", () => {
++  assert.equal(formatKrw(19900), "19,900원");
++  assert.equal(formatKrw(0), "0원");
++});
+-- 
+2.43.0
+
