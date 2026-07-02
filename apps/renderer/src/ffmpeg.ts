@@ -56,6 +56,21 @@ export interface KoreanFont {
 }
 
 export function findKoreanFont(): KoreanFont {
+  // 1) OS별 잘 알려진 한글 폰트 경로 우선 (Windows에는 fontconfig가 없음)
+  const known: Array<{ file: string; family: string }> = [
+    // Windows
+    { file: "C:/Windows/Fonts/malgun.ttf", family: "Malgun Gothic" },
+    { file: "C:/Windows/Fonts/malgunbd.ttf", family: "Malgun Gothic" },
+    { file: "C:/Windows/Fonts/NanumGothic.ttf", family: "NanumGothic" },
+    // macOS
+    { file: "/System/Library/Fonts/AppleSDGothicNeo.ttc", family: "Apple SD Gothic Neo" },
+    // Linux (fc-match 폴백 전 흔한 경로)
+    { file: "/usr/share/fonts/truetype/nanum/NanumGothic.ttf", family: "NanumGothic" }
+  ];
+  for (const candidate of known) {
+    if (existsSync(candidate.file)) return candidate;
+  }
+  // 2) fontconfig 폴백 (Linux 등)
   try {
     const file = execFileSync("fc-match", ["-f", "%{file}", ":lang=ko"], {
       encoding: "utf8"
@@ -70,11 +85,17 @@ export function findKoreanFont(): KoreanFont {
   } catch {
     throw new RendererError(
       "KOREAN_FONT_NOT_FOUND",
-      "한글 렌더 가능한 폰트를 찾지 못했습니다. 나눔 또는 Noto CJK 폰트를 설치하세요.\n" +
+      "한글 렌더 가능한 폰트를 찾지 못했습니다.\n" +
+        "  - Windows: 보통 맑은 고딕(C:/Windows/Fonts/malgun.ttf)이 자동 감지됩니다. 없다면 나눔고딕을 설치하세요.\n" +
         "  - Ubuntu/Debian: sudo apt-get install -y fonts-nanum (또는 fonts-noto-cjk)\n" +
-        "  - Windows/macOS: 시스템에 한글 폰트가 있으면 자동 감지됩니다 (fontconfig 필요)"
+        "  - macOS: 기본 Apple SD Gothic Neo가 자동 감지됩니다."
     );
   }
+}
+
+/** ffmpeg 필터 인자용 경로 이스케이프 (Windows 드라이브 콜론 등) */
+function filterPath(p: string): string {
+  return p.replace(/\\/g, "/").replace(/:/g, "\\:");
 }
 
 interface SceneRenderContext {
@@ -101,7 +122,7 @@ function drawText(opts: {
 }): string {
   const box = opts.box ? ":box=1:boxcolor=0x000000AA:boxborderw=18" : "";
   return (
-    `drawtext=textfile='${opts.file}':fontfile='${opts.fontfile}'` +
+    `drawtext=textfile='${filterPath(opts.file)}':fontfile='${filterPath(opts.fontfile)}'` +
     `:fontsize=${opts.size}:fontcolor=${opts.color}` +
     `:x=(w-text_w)/2:y=${opts.y}${box}`
   );
@@ -230,7 +251,7 @@ export function renderPlanToMp4(opts: {
       "-y", "-loglevel", "error",
       "-i", merged,
       "-vf",
-      `subtitles='${srtPath}':force_style='FontName=${font.family},FontSize=13,PrimaryColour=&HFFFFFF&,Outline=2,MarginV=42'`,
+      `subtitles='${filterPath(srtPath)}':force_style='FontName=${font.family},FontSize=13,PrimaryColour=&HFFFFFF&,Outline=2,MarginV=42'`,
       "-c:v", "libx264", "-preset", "veryfast", "-pix_fmt", "yuv420p",
       opts.outputPath
     ]);
