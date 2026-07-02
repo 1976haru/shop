@@ -77,13 +77,17 @@ export const campaignInputSchema = z.object({
   product: campaignProductSchema
 });
 
+export const sceneTypeSchema = z.enum(["PRODUCT_KENBURNS", "PRICE_CARD", "CTA_CARD"]);
+
 export const shortSceneSchema = z.object({
   order: z.number().int().positive(),
   startSecond: z.number().nonnegative(),
   endSecond: z.number().positive(),
   visualDirection: z.string().min(1),
   caption: z.string().min(1).max(180),
-  narration: z.string().min(1).max(300)
+  narration: z.string().min(1).max(300),
+  // R1: 미지정 시 렌더 계획 단계에서 결정적으로 유추(하위호환)
+  sceneType: sceneTypeSchema.optional()
 });
 
 export const creativeVariantSchema = z.object({
