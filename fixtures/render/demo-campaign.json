@@ -1,0 +1,247 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "CMP-DEMO-0001",
+  "createdAt": "2026-07-02T00:00:00.000Z",
+  "updatedAt": "2026-07-02T00:00:00.000Z",
+  "approvalStatus": "APPROVED",
+  "input": {
+    "campaignName": "청송사과 데모",
+    "objective": "CONVERSION",
+    "targetAudience": "과일 정기구매 30대",
+    "tone": "TRUSTWORTHY",
+    "durationSeconds": 15,
+    "channels": [
+      "YOUTUBE_SHORTS"
+    ],
+    "disclosureType": "DIRECT_SALE",
+    "forbiddenClaims": [],
+    "evidence": {
+      "originConfirmed": true,
+      "imageRightsConfirmed": true,
+      "factsConfirmed": true
+    },
+    "product": {
+      "sourceRunId": "RUN-DEMO",
+      "sourceItemIndex": 0,
+      "supplierSku": "SUP-APPLE-5KG",
+      "title": "청송 사과 부사 5kg",
+      "manufacturer": "청송농원",
+      "originDisplay": "국산(경북 청송)",
+      "optionSummary": "중량 5kg",
+      "sellPrice": 19900,
+      "listPrice": 22900,
+      "compliancePack": "AGRI_KR"
+    }
+  },
+  "offer": {
+    "channelTitle": "국산(경북 청송) 청송 사과 부사 5kg 중량 5kg",
+    "sellPrice": 19900,
+    "listPrice": 22900,
+    "callToAction": "판매페이지 연결 후 최종 조건 확인"
+  },
+  "creatives": [
+    {
+      "id": "CMP-DEMO-0001-problem_solving",
+      "angle": "PROBLEM_SOLVING",
+      "name": "문제 해결형",
+      "hook": "과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요.",
+      "title": "청송 사과 부사 5kg 구매 전 확인 | 문제 해결형",
+      "description": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.\n중량 5kg, 원산지 국산(경북 청송), 19,900원인지 차례로 확인합니다.\n상품: 청송 사과 부사 5kg\n구성: 중량 5kg\n원산지: 국산(경북 청송)\n가격: 19,900원\n구매페이지는 최종 게시 전에 연결하세요.\n최종 가격·재고·배송조건은 판매페이지에서 다시 확인하세요.",
+      "pinnedComment": "구매 링크가 연결되면 이 댓글을 업데이트하세요.",
+      "hashtags": [
+        "#청송",
+        "#사과",
+        "#부사",
+        "#5kg",
+        "#쇼핑쇼츠",
+        "#구매가이드",
+        "#상품비교",
+        "#농산물"
+      ],
+      "disclosureText": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.",
+      "scenes": [
+        {
+          "order": 1,
+          "startSecond": 0,
+          "endSecond": 3.75,
+          "visualDirection": "대표 상품 이미지를 크게 배치하고 핵심 후킹 자막을 표시",
+          "caption": "과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요.",
+          "narration": "과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요."
+        },
+        {
+          "order": 2,
+          "startSecond": 3.75,
+          "endSecond": 7.5,
+          "visualDirection": "상품 전체 모습과 포장 정보를 천천히 확대",
+          "caption": "구매 전 확인해야 할 정보를 차분하게 정리합니다.",
+          "narration": "구매 전 확인해야 할 정보를 차분하게 정리합니다."
+        },
+        {
+          "order": 3,
+          "startSecond": 7.5,
+          "endSecond": 11.25,
+          "visualDirection": "구성·옵션 텍스트를 이미지 위에 명확하게 표시",
+          "caption": "구성: 중량 5kg",
+          "narration": "구성: 중량 5kg"
+        },
+        {
+          "order": 4,
+          "startSecond": 11.25,
+          "endSecond": 15,
+          "visualDirection": "원산지·제조사 정보를 증빙 확인 표시와 함께 노출",
+          "caption": "원산지: 국산(경북 청송)",
+          "narration": "과장된 표현보다 실제 구성과 배송 조건을 비교한 뒤 결정하세요."
+        }
+      ],
+      "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,750\n과일 정기구매 30대라면 청송 사과 부사 5kg 고르기 전 이것부터 확인하세요.\n\n2\n00:00:03,750 --> 00:00:07,500\n구매 전 확인해야 할 정보를 차분하게 정리합니다.\n\n3\n00:00:07,500 --> 00:00:11,250\n구성: 중량 5kg\n\n4\n00:00:11,250 --> 00:00:15,000\n원산지: 국산(경북 청송)\n",
+      "renderManifest": {
+        "width": 720,
+        "height": 1280,
+        "aspectRatio": "9:16",
+        "durationSeconds": 15,
+        "requiresHumanReview": true,
+        "outputPreference": "MP4_IF_SUPPORTED"
+      }
+    },
+    {
+      "id": "CMP-DEMO-0001-information",
+      "angle": "INFORMATION",
+      "name": "정보 비교형",
+      "hook": "청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요.",
+      "title": "청송 사과 부사 5kg 구매 전 확인 | 정보 비교형",
+      "description": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.\n현재 확인된 정보는 중량 5kg, 제조사 청송농원, 원산지 국산(경북 청송)입니다.\n상품: 청송 사과 부사 5kg\n구성: 중량 5kg\n원산지: 국산(경북 청송)\n가격: 19,900원\n구매페이지는 최종 게시 전에 연결하세요.\n최종 가격·재고·배송조건은 판매페이지에서 다시 확인하세요.",
+      "pinnedComment": "구매 링크가 연결되면 이 댓글을 업데이트하세요.",
+      "hashtags": [
+        "#청송",
+        "#사과",
+        "#부사",
+        "#5kg",
+        "#쇼핑쇼츠",
+        "#구매가이드",
+        "#상품비교",
+        "#농산물"
+      ],
+      "disclosureText": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.",
+      "scenes": [
+        {
+          "order": 1,
+          "startSecond": 0,
+          "endSecond": 3.75,
+          "visualDirection": "대표 상품 이미지를 크게 배치하고 핵심 후킹 자막을 표시",
+          "caption": "청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요.",
+          "narration": "청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요."
+        },
+        {
+          "order": 2,
+          "startSecond": 3.75,
+          "endSecond": 7.5,
+          "visualDirection": "상품 전체 모습과 포장 정보를 천천히 확대",
+          "caption": "구매 전 확인해야 할 정보를 차분하게 정리합니다.",
+          "narration": "구매 전 확인해야 할 정보를 차분하게 정리합니다."
+        },
+        {
+          "order": 3,
+          "startSecond": 7.5,
+          "endSecond": 11.25,
+          "visualDirection": "구성·옵션 텍스트를 이미지 위에 명확하게 표시",
+          "caption": "구성: 중량 5kg",
+          "narration": "구성: 중량 5kg"
+        },
+        {
+          "order": 4,
+          "startSecond": 11.25,
+          "endSecond": 15,
+          "visualDirection": "원산지·제조사 정보를 증빙 확인 표시와 함께 노출",
+          "caption": "원산지: 국산(경북 청송)",
+          "narration": "가격과 옵션이 내 사용 목적에 맞는지 판매페이지에서 다시 확인하세요."
+        }
+      ],
+      "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,750\n청송 사과 부사 5kg, 이름보다 구성표를 먼저 보세요.\n\n2\n00:00:03,750 --> 00:00:07,500\n구매 전 확인해야 할 정보를 차분하게 정리합니다.\n\n3\n00:00:07,500 --> 00:00:11,250\n구성: 중량 5kg\n\n4\n00:00:11,250 --> 00:00:15,000\n원산지: 국산(경북 청송)\n",
+      "renderManifest": {
+        "width": 720,
+        "height": 1280,
+        "aspectRatio": "9:16",
+        "durationSeconds": 15,
+        "requiresHumanReview": true,
+        "outputPreference": "MP4_IF_SUPPORTED"
+      }
+    },
+    {
+      "id": "CMP-DEMO-0001-conversion",
+      "angle": "CONVERSION",
+      "name": "구매 전환형",
+      "hook": "청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요.",
+      "title": "청송 사과 부사 5kg 구매 전 확인 | 구매 전환형",
+      "description": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.\n중량 5kg 구성에 판매가 기준 19,900원입니다.\n상품: 청송 사과 부사 5kg\n구성: 중량 5kg\n원산지: 국산(경북 청송)\n가격: 19,900원\n구매페이지는 최종 게시 전에 연결하세요.\n최종 가격·재고·배송조건은 판매페이지에서 다시 확인하세요.",
+      "pinnedComment": "구매 링크가 연결되면 이 댓글을 업데이트하세요.",
+      "hashtags": [
+        "#청송",
+        "#사과",
+        "#부사",
+        "#5kg",
+        "#쇼핑쇼츠",
+        "#구매가이드",
+        "#상품비교",
+        "#농산물"
+      ],
+      "disclosureText": "이 콘텐츠는 판매자가 직접 판매하는 상품을 소개합니다.",
+      "scenes": [
+        {
+          "order": 1,
+          "startSecond": 0,
+          "endSecond": 3.75,
+          "visualDirection": "대표 상품 이미지를 크게 배치하고 핵심 후킹 자막을 표시",
+          "caption": "청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요.",
+          "narration": "청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요."
+        },
+        {
+          "order": 2,
+          "startSecond": 3.75,
+          "endSecond": 7.5,
+          "visualDirection": "상품 전체 모습과 포장 정보를 천천히 확대",
+          "caption": "구매 전 확인해야 할 정보를 차분하게 정리합니다.",
+          "narration": "구매 전 확인해야 할 정보를 차분하게 정리합니다."
+        },
+        {
+          "order": 3,
+          "startSecond": 7.5,
+          "endSecond": 11.25,
+          "visualDirection": "구성·옵션 텍스트를 이미지 위에 명확하게 표시",
+          "caption": "구성: 중량 5kg",
+          "narration": "구성: 중량 5kg"
+        },
+        {
+          "order": 4,
+          "startSecond": 11.25,
+          "endSecond": 15,
+          "visualDirection": "원산지·제조사 정보를 증빙 확인 표시와 함께 노출",
+          "caption": "원산지: 국산(경북 청송)",
+          "narration": "판매페이지가 연결되면 재고와 최종 조건을 확인하세요."
+        }
+      ],
+      "subtitleSrt": "1\n00:00:00,000 --> 00:00:03,750\n청송 사과 부사 5kg를 찾고 있다면 가격과 구성을 한 번에 확인하세요.\n\n2\n00:00:03,750 --> 00:00:07,500\n구매 전 확인해야 할 정보를 차분하게 정리합니다.\n\n3\n00:00:07,500 --> 00:00:11,250\n구성: 중량 5kg\n\n4\n00:00:11,250 --> 00:00:15,000\n원산지: 국산(경북 청송)\n",
+      "renderManifest": {
+        "width": 720,
+        "height": 1280,
+        "aspectRatio": "9:16",
+        "durationSeconds": 15,
+        "requiresHumanReview": true,
+        "outputPreference": "MP4_IF_SUPPORTED"
+      }
+    }
+  ],
+  "safetyIssues": [
+    {
+      "code": "LANDING_URL_MISSING",
+      "severity": "WARNING",
+      "message": "구매 링크가 없어 쇼츠의 클릭 성과를 측정하기 어렵습니다.",
+      "fix": "실제 판매페이지가 준비되면 링크를 추가하고 캠페인을 다시 생성하세요."
+    }
+  ],
+  "performanceSnapshots": [],
+  "insight": {
+    "type": "NO_DATA",
+    "message": "아직 성과 데이터가 없습니다.",
+    "nextAction": "쇼츠를 게시한 뒤 조회·클릭·주문·매출을 기록하세요."
+  }
+}

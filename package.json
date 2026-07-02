@@ -3,16 +3,20 @@
   "version": "0.3.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=22.13.0" },
+  "engines": {
+    "node": ">=22.13.0"
+  },
   "scripts": {
     "diagnose": "node --env-file-if-exists=.env --experimental-strip-types apps/cli/src/index.ts",
     "dev": "node --env-file-if-exists=.env --experimental-strip-types --watch apps/local-web/src/server.ts",
     "start": "node --env-file-if-exists=.env --experimental-strip-types apps/local-web/src/server.ts",
-    "test": "node --experimental-strip-types --test packages/*/test/*.test.ts apps/local-web/test/*.test.ts",
+    "test": "node --experimental-strip-types --test packages/*/test/*.test.ts apps/local-web/test/*.test.ts apps/renderer/test/*.test.ts",
     "test:core": "node --experimental-strip-types --test packages/core/test/*.test.ts",
     "test:agent": "node --experimental-strip-types --test packages/agent/test/*.test.ts",
     "typecheck": "tsc --noEmit",
-    "check": "node --experimental-strip-types scripts/check-boundaries.ts"
+    "check": "node --experimental-strip-types scripts/check-boundaries.ts",
+    "render": "node --env-file-if-exists=.env --experimental-strip-types apps/renderer/src/index.ts",
+    "render:demo": "node --experimental-strip-types apps/renderer/src/index.ts --campaign fixtures/render/demo-campaign.json --creative CMP-DEMO-0001-conversion --image fixtures/render/product.png --out tmp/demo.mp4"
   },
   "dependencies": {
     "sanitize-html": "2.17.5",
